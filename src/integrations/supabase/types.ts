@@ -25,6 +25,7 @@ export type Database = {
           image_url: string | null
           latitude: number | null
           longitude: number | null
+          published: boolean | null
           tree_number: string
           tree_species: string | null
           updated_at: string
@@ -39,6 +40,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           longitude?: number | null
+          published?: boolean | null
           tree_number: string
           tree_species?: string | null
           updated_at?: string
@@ -53,6 +55,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           longitude?: number | null
+          published?: boolean | null
           tree_number?: string
           tree_species?: string | null
           updated_at?: string
@@ -128,6 +131,7 @@ export type Database = {
           image_url: string | null
           location: string | null
           max_participants: number | null
+          published: boolean | null
           title: string
         }
         Insert: {
@@ -139,6 +143,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           max_participants?: number | null
+          published?: boolean | null
           title: string
         }
         Update: {
@@ -150,6 +155,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           max_participants?: number | null
+          published?: boolean | null
           title?: string
         }
         Relationships: []
