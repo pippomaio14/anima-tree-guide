@@ -14,6 +14,7 @@ const EventsPage = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [bookings, setBookings] = useState<string[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("events").select("*").order("event_date", { ascending: true }).then(({ data }) => {
@@ -49,53 +50,63 @@ const EventsPage = () => {
   const renderEvent = (event: any) => {
     const isBooked = bookings.includes(event.id);
     const isPast = new Date(event.event_date) < now;
+    const isExpanded = expandedId === event.id;
     return (
       <motion.div
         key={event.id}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl border border-border bg-card p-4 space-y-3 ${isPast ? "opacity-60" : ""}`}
+        className={`rounded-xl border border-border bg-card overflow-hidden ${isPast ? "opacity-60" : ""}`}
       >
-        <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-lg gradient-forest flex flex-col items-center justify-center text-primary-foreground">
-            <span className="text-xs font-bold">{format(new Date(event.event_date), "dd", { locale: it })}</span>
-            <span className="text-[10px] uppercase">{format(new Date(event.event_date), "MMM", { locale: it })}</span>
-          </div>
-          <div className="flex-1">
-            <h3 className="font-medium text-foreground">{event.title}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">{event.description}</p>
-            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {format(new Date(event.event_date), "HH:mm", { locale: it })}
-              </span>
-              {event.location && (
+        {event.image_url && (
+          <img src={event.image_url} alt={event.title} className="w-full h-40 object-cover" />
+        )}
+        <div className="p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-lg gradient-forest flex flex-col items-center justify-center text-primary-foreground shrink-0">
+              <span className="text-xs font-bold">{format(new Date(event.event_date), "dd", { locale: it })}</span>
+              <span className="text-[10px] uppercase">{format(new Date(event.event_date), "MMM", { locale: it })}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium text-foreground cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : event.id)}>{event.title}</h3>
+              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {event.location}
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(event.event_date), "HH:mm", { locale: it })}
                 </span>
-              )}
+                {event.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {event.location}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+          {isExpanded && event.description && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              className="pt-3 border-t border-border"
+            >
+              <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: event.description }} />
+            </motion.div>
+          )}
+          {event.booking_enabled && !isPast && (
+            <Button
+              variant={isBooked ? "outline" : "default"}
+              size="sm"
+              className={isBooked ? "border-primary text-primary" : "gradient-forest text-primary-foreground"}
+              onClick={() => toggleBooking(event.id)}
+            >
+              {isBooked ? (
+                <><CheckCircle className="w-3.5 h-3.5 mr-1.5" /> Prenotato</>
+              ) : (
+                <><Users className="w-3.5 h-3.5 mr-1.5" /> Prenota</>
+              )}
+            </Button>
+          )}
         </div>
-        {event.booking_enabled && !isPast && (
-          <Button
-            variant={isBooked ? "outline" : "default"}
-            size="sm"
-            className={isBooked ? "border-primary text-primary" : "gradient-forest text-primary-foreground"}
-            onClick={() => toggleBooking(event.id)}
-          >
-            {isBooked ? (
-              <>
-                <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> Prenotato
-              </>
-            ) : (
-              <>
-                <Users className="w-3.5 h-3.5 mr-1.5" /> Prenota
-              </>
-            )}
-          </Button>
-        )}
       </motion.div>
     );
   };

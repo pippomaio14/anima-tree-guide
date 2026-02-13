@@ -33,6 +33,9 @@ const ArticlesPage = () => {
             className="rounded-xl border border-border bg-card overflow-hidden"
             onClick={() => setSelected(selected === article.id ? null : article.id)}
           >
+            {article.image_url && (
+              <img src={article.image_url} alt={article.title} className="w-full h-40 object-cover" />
+            )}
             <div className="p-4">
               <span className="text-[10px] uppercase tracking-wider text-accent font-semibold">
                 {article.category}
@@ -44,7 +47,7 @@ const ArticlesPage = () => {
                   animate={{ height: "auto", opacity: 1 }}
                   className="mt-3 pt-3 border-t border-border"
                 >
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{article.content}</p>
+                  <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: article.content }} />
                 </motion.div>
               )}
             </div>
