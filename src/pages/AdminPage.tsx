@@ -7,10 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
-import { Users, TreePine, Calendar, BookOpen, Shield } from "lucide-react";
+import { Users, TreePine, Calendar, BookOpen } from "lucide-react";
 import AdminTreesTab from "@/components/admin/AdminTreesTab";
 import AdminEventsTab from "@/components/admin/AdminEventsTab";
 import AdminArticlesTab from "@/components/admin/AdminArticlesTab";
+import AdminUsersTab from "@/components/admin/AdminUsersTab";
 
 const AdminPage = () => {
   const { isAdmin, loading } = useAuth();
@@ -38,18 +39,6 @@ const AdminPage = () => {
     setArticles(articlesRes.data || []);
   };
 
-  const toggleAdmin = async (userId: string) => {
-    const { data: existing } = await supabase.from("user_roles").select("id").eq("user_id", userId).eq("role", "admin");
-    if (existing && existing.length > 0) {
-      await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
-      toast.success("Ruolo admin rimosso");
-    } else {
-      await supabase.from("user_roles").insert({ user_id: userId, role: "admin" });
-      toast.success("Ruolo admin assegnato");
-    }
-    loadData();
-  };
-
   if (loading) return null;
 
   return (
@@ -74,19 +63,8 @@ const AdminPage = () => {
             <AdminArticlesTab articles={articles} onReload={loadData} />
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-2">
-            {users.map((profile) => (
-              <div key={profile.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{profile.full_name || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{profile.email}</p>
-                  <p className="text-xs text-muted-foreground">{profile.phone}</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => toggleAdmin(profile.user_id)} className="text-xs">
-                  <Shield className="w-3 h-3 mr-1" /> Admin
-                </Button>
-              </div>
-            ))}
+          <TabsContent value="users">
+            <AdminUsersTab users={users} onReload={loadData} />
           </TabsContent>
         </Tabs>
       </div>
