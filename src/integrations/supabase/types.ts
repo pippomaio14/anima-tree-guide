@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          published: boolean | null
+          title: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          title: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          title?: string
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           category: string | null

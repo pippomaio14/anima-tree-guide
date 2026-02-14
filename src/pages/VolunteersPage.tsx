@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
 import { Users, Heart, Bell, Mail } from "lucide-react";
@@ -5,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const VolunteersPage = () => {
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase.from("announcements").select("*").eq("published", true).order("created_at", { ascending: false })
+      .then(({ data }) => setAnnouncements(data || []));
+  }, []);
+
   return (
     <MobileLayout>
       <PageHeader title="Volontari" showBack />
@@ -37,9 +46,26 @@ const VolunteersPage = () => {
             <Bell className="w-5 h-5 text-accent" />
             <h3 className="font-display font-semibold">Avvisi per Volontari</h3>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Gli avvisi verranno pubblicati qui. Resta aggiornato sulle prossime attività!
-          </p>
+          {announcements.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nessun avviso al momento. Resta aggiornato sulle prossime attività!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {announcements.map((a) => (
+                <div key={a.id} className="rounded-lg border border-border overflow-hidden">
+                  {a.image_url && <img src={a.image_url} alt={a.title} className="w-full h-32 object-cover" />}
+                  <div className="p-3">
+                    <p className="text-sm font-semibold text-foreground">{a.title}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{new Date(a.created_at).toLocaleDateString("it-IT")}</p>
+                    {a.content && (
+                      <div className="text-sm text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: a.content }} />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
         <motion.div
