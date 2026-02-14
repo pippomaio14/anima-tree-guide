@@ -129,23 +129,16 @@
     border-radius: 0.5rem;
     margin: 0.5rem 0;
   }
-  .rich-content h1 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0.75rem 0 0.25rem;
+  .rich-content a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
   }
-  .rich-content h2 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0.5rem 0 0.25rem;
-  }
-  .rich-content ul, .rich-content ol {
-    padding-left: 1.25rem;
-    margin: 0.25rem 0;
-  }
-  .rich-content ul { list-style: disc; }
-  .rich-content ol { list-style: decimal; }
-  .rich-content p { margin: 0.25rem 0; }
+  .rich-content [data-align="left"] { text-align: left; }
+  .rich-content [data-align="center"] { text-align: center; }
+  .rich-content [data-align="right"] { text-align: right; }
+  .rich-content [data-float="left"] { float: left; margin: 0 1rem 0.5rem 0; }
+  .rich-content [data-float="right"] { float: right; margin: 0 0 0.5rem 1rem; }
+  .rich-content::after { content: ""; display: table; clear: both; }
 
   .ProseMirror {
     min-height: 120px;
@@ -154,6 +147,23 @@
   .ProseMirror img {
     max-width: 100%;
     height: auto;
+    border-radius: 0.5rem;
+  }
+  .ProseMirror a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* Image resizer in editor */
+  .image-resizer-container { margin: 0.5rem 0; }
+  .image-resizer-container[data-align="left"] { text-align: left; }
+  .image-resizer-container[data-align="center"] { text-align: center; }
+  .image-resizer-container[data-align="right"] { text-align: right; }
+  .image-resizer-container[data-float="left"] { float: left; margin: 0 1rem 0.5rem 0; }
+  .image-resizer-container[data-float="right"] { float: right; margin: 0 0 0.5rem 1rem; }
+  .image-resizer-wrapper.selected {
+    outline: 2px solid hsl(var(--primary));
     border-radius: 0.5rem;
   }
 }
