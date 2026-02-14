@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { TreePine } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,6 +15,7 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [isVolunteer, setIsVolunteer] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -28,7 +30,7 @@ const RegisterPage = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: fullName, phone },
+        data: { full_name: fullName, phone, is_volunteer: isVolunteer },
       },
     });
     if (error) {
@@ -71,6 +73,23 @@ const RegisterPage = () => {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimo 6 caratteri" required minLength={6} />
+          </div>
+
+          <div className="flex items-start space-x-3 rounded-lg border border-border p-3 bg-muted/30">
+            <Checkbox
+              id="volunteer"
+              checked={isVolunteer}
+              onCheckedChange={(checked) => setIsVolunteer(checked === true)}
+              className="mt-0.5"
+            />
+            <div className="space-y-1">
+              <Label htmlFor="volunteer" className="text-sm font-medium cursor-pointer">
+                Voglio essere volontario del parco
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Riceverai aggiornamenti e avvisi tramite WhatsApp
+              </p>
+            </div>
           </div>
 
           <Button type="submit" className="w-full gradient-forest text-primary-foreground shadow-forest" disabled={loading}>
