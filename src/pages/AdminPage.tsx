@@ -7,12 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
-import { Users, TreePine, Calendar, BookOpen, Bell } from "lucide-react";
+import { Users, TreePine, Calendar, BookOpen, Bell, Heart } from "lucide-react";
 import AdminTreesTab from "@/components/admin/AdminTreesTab";
 import AdminEventsTab from "@/components/admin/AdminEventsTab";
 import AdminArticlesTab from "@/components/admin/AdminArticlesTab";
 import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminAnnouncementsTab from "@/components/admin/AdminAnnouncementsTab";
+import AdminVolunteersTab from "@/components/admin/AdminVolunteersTab";
 
 const AdminPage = () => {
   const { isAdmin, loading } = useAuth();
@@ -50,11 +51,12 @@ const AdminPage = () => {
       <PageHeader title="Amministrazione" />
       <div className="p-4">
         <Tabs defaultValue="trees" className="w-full">
-          <TabsList className="w-full grid grid-cols-5 mb-4">
+          <TabsList className="w-full grid grid-cols-6 mb-4">
             <TabsTrigger value="trees" className="text-xs"><TreePine className="w-3.5 h-3.5 mr-1" />Alberi</TabsTrigger>
             <TabsTrigger value="events" className="text-xs"><Calendar className="w-3.5 h-3.5 mr-1" />Eventi</TabsTrigger>
             <TabsTrigger value="articles" className="text-xs"><BookOpen className="w-3.5 h-3.5 mr-1" />Articoli</TabsTrigger>
             <TabsTrigger value="announcements" className="text-xs"><Bell className="w-3.5 h-3.5 mr-1" />Avvisi</TabsTrigger>
+            <TabsTrigger value="volunteers" className="text-xs"><Heart className="w-3.5 h-3.5 mr-1" />Volontari</TabsTrigger>
             <TabsTrigger value="users" className="text-xs"><Users className="w-3.5 h-3.5 mr-1" />Utenti</TabsTrigger>
           </TabsList>
 
@@ -70,7 +72,9 @@ const AdminPage = () => {
           <TabsContent value="announcements">
             <AdminAnnouncementsTab announcements={announcements} onReload={loadData} />
           </TabsContent>
-
+          <TabsContent value="volunteers">
+            <AdminVolunteersTab users={users} />
+          </TabsContent>
           <TabsContent value="users">
             <AdminUsersTab users={users} onReload={loadData} />
           </TabsContent>
