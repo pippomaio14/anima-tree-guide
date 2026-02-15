@@ -187,6 +187,42 @@ export type Database = {
         }
         Relationships: []
       }
+      park_sections: {
+        Row: {
+          content: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          image_url: string | null
+          published: boolean | null
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean | null
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
