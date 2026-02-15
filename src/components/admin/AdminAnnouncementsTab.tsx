@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, X, Check, ImagePlus } from "lucide-react";
+import { Plus, Trash2, Pencil, X, Check, ImagePlus, MessageCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RichTextEditor from "@/components/RichTextEditor";
 
 interface AdminAnnouncementsTabProps {
@@ -17,6 +18,30 @@ const AdminAnnouncementsTab = ({ announcements, onReload }: AdminAnnouncementsTa
   const [newItem, setNewItem] = useState({ title: "", content: "", image_url: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [whatsappOpen, setWhatsappOpen] = useState(false);
+  const [volunteers, setVolunteers] = useState<{ full_name: string; phone: string }[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+
+  const sendWhatsApp = async (item: any) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("full_name, phone")
+      .eq("is_volunteer", true);
+    const vols = (data || []).filter((v) => v.phone);
+    if (vols.length === 0) {
+      toast.error("Nessun volontario con numero di telefono trovato");
+      return;
+    }
+    setVolunteers(vols);
+    setSelectedAnnouncement(item);
+    setWhatsappOpen(true);
+  };
+
+  const getWhatsAppUrl = (phone: string, title: string) => {
+    const cleanPhone = phone.replace(/[^0-9+]/g, "").replace(/^\+/, "");
+    const text = encodeURIComponent(`📢 *Avviso del Parco*\n\n*${title}*\n\nPer maggiori dettagli consulta l'app.`);
+    return `https://wa.me/${cleanPhone}?text=${text}`;
+  };
 
   const uploadImage = async (file: File, callback: (url: string) => void) => {
     const ext = file.name.split(".").pop();
@@ -118,6 +143,7 @@ const AdminAnnouncementsTab = ({ announcements, onReload }: AdminAnnouncementsTa
                   <div className="flex items-center gap-2">
                     <Switch checked={item.published !== false} onCheckedChange={() => togglePublished(item.id, item.published !== false)} />
                     <button onClick={() => startEdit(item)} className="text-muted-foreground p-1 hover:text-foreground"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => sendWhatsApp(item)} className="text-green-600 p-1 hover:text-green-700" title="Invia su WhatsApp ai volontari"><MessageCircle className="w-4 h-4" /></button>
                     <button onClick={() => deleteItem(item.id)} className="text-destructive p-1"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
@@ -126,6 +152,39 @@ const AdminAnnouncementsTab = ({ announcements, onReload }: AdminAnnouncementsTa
           </div>
         ))}
       </div>
+
+      <Dialog open={whatsappOpen} onOpenChange={setWhatsappOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Invia avviso ai volontari</DialogTitle>
+          </DialogHeader>
+          {selectedAnnouncement && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Clicca sul nome di ogni volontario per aprire WhatsApp e inviare l'avviso "<strong>{selectedAnnouncement.title}</strong>".
+              </p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {volunteers.map((v, i) => (
+                  <a
+                    key={i}
+                    href={getWhatsAppUrl(v.phone, selectedAnnouncement.title)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4 text-green-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{v.full_name || "Volontario"}</p>
+                      <p className="text-xs text-muted-foreground">{v.phone}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">{volunteers.length} volontari trovati</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
