@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
@@ -13,19 +14,21 @@ const ProfilePage = () => {
   const { user, signOut } = useAuth();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [isVolunteer, setIsVolunteer] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       supabase
         .from("profiles")
-        .select("full_name, phone")
+        .select("full_name, phone, is_volunteer")
         .eq("user_id", user.id)
         .maybeSingle()
         .then(({ data }) => {
           if (data) {
             setFullName(data.full_name || "");
             setPhone(data.phone || "");
+            setIsVolunteer(data.is_volunteer || false);
           }
         });
     }
@@ -36,7 +39,7 @@ const ProfilePage = () => {
     setLoading(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: fullName, phone })
+      .update({ full_name: fullName, phone, is_volunteer: isVolunteer })
       .eq("user_id", user.id);
     if (error) toast.error("Errore nel salvataggio");
     else toast.success("Profilo aggiornato!");
@@ -59,6 +62,13 @@ const ProfilePage = () => {
           <div className="space-y-2">
             <Label>Telefono</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border p-3 bg-muted/30">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Volontario del parco</Label>
+              <p className="text-xs text-muted-foreground">Ricevi avvisi tramite WhatsApp</p>
+            </div>
+            <Switch checked={isVolunteer} onCheckedChange={setIsVolunteer} />
           </div>
         </div>
 
