@@ -12,7 +12,7 @@ interface AdminTreesTabProps {
 }
 
 const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
-  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "" });
+  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
 
@@ -43,9 +43,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
 
   const addTree = async () => {
     if (!newTree.tree_number || !newTree.adopter_name) { toast.error("Numero e adottante obbligatori"); return; }
-    const { error } = await supabase.from("adopted_trees").insert([newTree]);
+    const payload = { ...newTree, latitude: newTree.latitude ? parseFloat(newTree.latitude) : null, longitude: newTree.longitude ? parseFloat(newTree.longitude) : null };
+    const { error } = await supabase.from("adopted_trees").insert([payload]);
     if (error) toast.error(error.message);
-    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "" }); onReload(); }
+    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" }); onReload(); }
   };
 
   const deleteTree = async (id: string) => {
@@ -56,12 +57,13 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
 
   const startEdit = (tree: any) => {
     setEditingId(tree.id);
-    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "" });
+    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "", latitude: tree.latitude?.toString() || "", longitude: tree.longitude?.toString() || "" });
   };
 
   const saveEdit = async () => {
     if (!editingId) return;
-    const { error } = await supabase.from("adopted_trees").update(editData).eq("id", editingId);
+    const payload = { ...editData, latitude: editData.latitude ? parseFloat(editData.latitude) : null, longitude: editData.longitude ? parseFloat(editData.longitude) : null };
+    const { error } = await supabase.from("adopted_trees").update(payload).eq("id", editingId);
     if (error) toast.error(error.message);
     else { toast.success("Albero aggiornato!"); setEditingId(null); onReload(); }
   };
@@ -90,6 +92,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         </div>
         <Input placeholder="Dedica" value={newTree.dedication_message} onChange={(e) => setNewTree({ ...newTree, dedication_message: e.target.value })} />
         <Input placeholder="Periodo adozione" value={newTree.adoption_period} onChange={(e) => setNewTree({ ...newTree, adoption_period: e.target.value })} />
+        <div className="grid grid-cols-2 gap-2">
+          <Input placeholder="Latitudine" type="number" step="any" value={newTree.latitude} onChange={(e) => setNewTree({ ...newTree, latitude: e.target.value })} />
+          <Input placeholder="Longitudine" type="number" step="any" value={newTree.longitude} onChange={(e) => setNewTree({ ...newTree, longitude: e.target.value })} />
+        </div>
         <Button onClick={addTree} className="gradient-forest text-primary-foreground w-full">Aggiungi Albero</Button>
       </div>
 
@@ -105,9 +111,13 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
                   <Input placeholder="Dedicato a" value={editData.dedicated_to} onChange={(e) => setEditData({ ...editData, dedicated_to: e.target.value })} />
                   <Input placeholder="Specie" value={editData.tree_species} onChange={(e) => setEditData({ ...editData, tree_species: e.target.value })} />
                 </div>
-                <Input placeholder="Dedica" value={editData.dedication_message} onChange={(e) => setEditData({ ...editData, dedication_message: e.target.value })} />
-                <Input placeholder="Periodo" value={editData.adoption_period} onChange={(e) => setEditData({ ...editData, adoption_period: e.target.value })} />
-                <div className="flex gap-2">
+                 <Input placeholder="Dedica" value={editData.dedication_message} onChange={(e) => setEditData({ ...editData, dedication_message: e.target.value })} />
+                 <Input placeholder="Periodo" value={editData.adoption_period} onChange={(e) => setEditData({ ...editData, adoption_period: e.target.value })} />
+                 <div className="grid grid-cols-2 gap-2">
+                   <Input placeholder="Latitudine" type="number" step="any" value={editData.latitude} onChange={(e) => setEditData({ ...editData, latitude: e.target.value })} />
+                   <Input placeholder="Longitudine" type="number" step="any" value={editData.longitude} onChange={(e) => setEditData({ ...editData, longitude: e.target.value })} />
+                 </div>
+                 <div className="flex gap-2">
                   <Button size="sm" onClick={saveEdit} className="flex-1"><Check className="w-3 h-3 mr-1" />Salva</Button>
                   <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="flex-1"><X className="w-3 h-3 mr-1" />Annulla</Button>
                 </div>
