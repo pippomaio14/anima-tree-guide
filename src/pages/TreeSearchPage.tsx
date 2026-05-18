@@ -5,6 +5,7 @@ import { Search, MapPin, TreePine, Heart } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
 import { motion, AnimatePresence } from "framer-motion";
+import TreeMapDialog from "@/components/TreeMapDialog";
 
 interface AdoptedTree {
   id: string;
@@ -22,6 +23,7 @@ const TreeSearchPage = () => {
   const [query, setQuery] = useState("");
   const [trees, setTrees] = useState<AdoptedTree[]>([]);
   const [selected, setSelected] = useState<AdoptedTree | null>(null);
+  const [mapTree, setMapTree] = useState<AdoptedTree | null>(null);
 
   useEffect(() => {
     if (query.length < 2) {
@@ -43,10 +45,7 @@ const TreeSearchPage = () => {
 
   const openMap = (tree: AdoptedTree) => {
     if (tree.latitude && tree.longitude) {
-      window.open(
-        `https://www.google.com/maps/dir/?api=1&destination=${tree.latitude},${tree.longitude}`,
-        "_blank"
-      );
+      setMapTree(tree);
     }
   };
 
@@ -140,6 +139,20 @@ const TreeSearchPage = () => {
           </p>
         )}
       </div>
+      <TreeMapDialog
+        open={!!mapTree}
+        onClose={() => setMapTree(null)}
+        tree={
+          mapTree && mapTree.latitude && mapTree.longitude
+            ? {
+                tree_number: mapTree.tree_number,
+                adopter_name: mapTree.adopter_name,
+                latitude: mapTree.latitude,
+                longitude: mapTree.longitude,
+              }
+            : null
+        }
+      />
     </MobileLayout>
   );
 };
