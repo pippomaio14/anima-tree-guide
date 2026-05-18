@@ -4,21 +4,35 @@ import MobileLayout from "@/components/MobileLayout";
 import { Leaf, Flower2, Apple, Sprout, ArrowLeft, RotateCcw, CheckCircle2, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { leafKey, startNodeId, type LeafKeyNode } from "@/lib/leafKey";
+import { leafKey, startNodeId as leafStart } from "@/lib/leafKey";
+import { flowerKey, flowerStartNodeId } from "@/lib/flowerKey";
+
+type KeyMode = "leaf" | "flower";
+
+const keyConfig: Record<KeyMode, {
+  title: string;
+  data: Record<string, any>;
+  start: string;
+  resultLabel: string;
+}> = {
+  leaf: { title: "Chiave delle foglie", data: leafKey, start: leafStart, resultLabel: "Probabile specie" },
+  flower: { title: "Chiave dei fiori", data: flowerKey, start: flowerStartNodeId, resultLabel: "Probabile pianta" },
+};
 
 const categories = [
-  { key: "leaf", icon: Leaf, label: "Foglia", desc: "Identifica dalla forma della foglia", color: "gradient-forest", enabled: true },
-  { key: "flower", icon: Flower2, label: "Fiore", desc: "Riconosci dal tipo di fiore", color: "gradient-amber", enabled: false },
+  { key: "leaf" as const, icon: Leaf, label: "Foglia", desc: "Identifica dalla forma della foglia", color: "gradient-forest", enabled: true },
+  { key: "flower" as const, icon: Flower2, label: "Fiore", desc: "Riconosci dal tipo di fiore", color: "gradient-amber", enabled: true },
   { key: "fruit", icon: Apple, label: "Frutto", desc: "Classifica dal frutto", color: "gradient-forest", enabled: false },
   { key: "bud", icon: Sprout, label: "Gemma", desc: "Osserva le gemme", color: "gradient-amber", enabled: false },
 ];
 
 const ClassifyPage = () => {
-  const [mode, setMode] = useState<"menu" | "leaf">("menu");
-  const [nodeId, setNodeId] = useState<string>(startNodeId);
+  const [mode, setMode] = useState<"menu" | KeyMode>("menu");
+  const [nodeId, setNodeId] = useState<string>("start");
   const [history, setHistory] = useState<string[]>([]);
 
-  const node: LeafKeyNode | undefined = leafKey[nodeId];
+  const active = mode !== "menu" ? keyConfig[mode] : null;
+  const node = active ? active.data[nodeId] : undefined;
 
   const goTo = (next: string) => {
     setHistory((h) => [...h, nodeId]);
@@ -35,13 +49,19 @@ const ClassifyPage = () => {
   };
 
   const restart = () => {
-    setNodeId(startNodeId);
+    if (active) setNodeId(active.start);
+    setHistory([]);
+  };
+
+  const startKey = (m: KeyMode) => {
+    setMode(m);
+    setNodeId(keyConfig[m].start);
     setHistory([]);
   };
 
   const exitToMenu = () => {
-    restart();
     setMode("menu");
+    setHistory([]);
   };
 
   return (
@@ -60,7 +80,10 @@ const ClassifyPage = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  onClick={() => cat.enabled && cat.key === "leaf" && setMode("leaf")}
+                  onClick={() => {
+                    if (!cat.enabled) return;
+                    if (cat.key === "leaf" || cat.key === "flower") startKey(cat.key);
+                  }}
                   disabled={!cat.enabled}
                   className="relative flex flex-col items-center p-6 rounded-xl border border-border bg-card hover:shadow-forest transition-shadow disabled:opacity-60"
                 >
@@ -79,18 +102,19 @@ const ClassifyPage = () => {
             </div>
             <div className="rounded-xl bg-muted p-4 text-center">
               <p className="text-sm text-muted-foreground">
-                🌿 Inizia dalla <strong>Foglia</strong>: rispondi a poche domande e scopri di che albero si tratta.
+                🌿 Scegli <strong>Foglia</strong> o <strong>Fiore</strong> e rispondi a poche domande per scoprire la pianta.
               </p>
             </div>
           </>
         )}
 
-        {mode === "leaf" && node && (
+        {active && node && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Button variant="ghost" size="sm" onClick={exitToMenu}>
                 <ArrowLeft className="w-4 h-4 mr-1" /> Categorie
               </Button>
+              <span className="text-xs text-muted-foreground">{active.title}</span>
               <Button variant="outline" size="sm" onClick={restart}>
                 <RotateCcw className="w-4 h-4 mr-1" /> Ricomincia
               </Button>
@@ -144,15 +168,19 @@ const ClassifyPage = () => {
                       <CheckCircle2 className="w-8 h-8 text-primary-foreground" />
                     </div>
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Probabile specie</p>
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground">{active.resultLabel}</p>
                       <h2 className="text-2xl font-bold text-foreground mt-1">{node.species}</h2>
                       <p className="text-sm italic text-muted-foreground">{node.scientificName}</p>
                     </div>
                     <p className="text-sm text-foreground/90">{node.description}</p>
                     <ul className="text-left text-sm text-muted-foreground space-y-1 bg-muted/50 rounded-lg p-3">
-                      {node.characteristics.map((c) => (
+                      {node.characteristics.map((c: string) => (
                         <li key={c} className="flex items-start gap-2">
-                          <Leaf className="w-3.5 h-3.5 text-primary mt-1 flex-shrink-0" />
+                          {mode === "flower" ? (
+                            <Flower2 className="w-3.5 h-3.5 text-primary mt-1 flex-shrink-0" />
+                          ) : (
+                            <Leaf className="w-3.5 h-3.5 text-primary mt-1 flex-shrink-0" />
+                          )}
                           <span>{c}</span>
                         </li>
                       ))}
