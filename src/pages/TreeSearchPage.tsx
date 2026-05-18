@@ -139,6 +139,20 @@ const TreeSearchPage = () => {
           </p>
         )}
       </div>
+      <TreeMapDialog
+        open={!!mapTree}
+        onClose={() => setMapTree(null)}
+        tree={
+          mapTree && mapTree.latitude && mapTree.longitude
+            ? {
+                tree_number: mapTree.tree_number,
+                adopter_name: mapTree.adopter_name,
+                latitude: mapTree.latitude,
+                longitude: mapTree.longitude,
+              }
+            : null
+        }
+      />
     </MobileLayout>
   );
 };
