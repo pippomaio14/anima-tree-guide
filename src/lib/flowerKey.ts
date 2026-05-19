@@ -167,6 +167,13 @@ export const flowerKey: Record<string, FlowerKeyNode> = {
   q_silvery: {
     type: "question",
     id: "q_silvery",
+    question: "Foglie argentee o foglie verdi normali?",
+    optionA: { label: "Foglie argentate (lanceolate o strette)", next: "q_silvery_thorn" },
+    optionB: { label: "Foglie verdi piccole (1-3 cm) con 3 nervature, due spine per nodo (Marruca)", next: "r_marruca" },
+  },
+  q_silvery_thorn: {
+    type: "question",
+    id: "q_silvery_thorn",
     question: "Il ramo ha spine?",
     optionA: { label: "Senza spine evidenti, fiori giallo-argentei a campanella profumati (Olivagno)", next: "r_olivagno" },
     optionB: { label: "Rami molto spinosi, fiori verde-giallini insignificanti (Olivello spinoso)", next: "r_olivello" },
