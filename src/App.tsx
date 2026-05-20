@@ -15,6 +15,7 @@ import ParkInfoPage from "./pages/ParkInfoPage";
 import VolunteersPage from "./pages/VolunteersPage";
 import ClassifyPage from "./pages/ClassifyPage";
 import GamesPage from "./pages/GamesPage";
+import QuizPage from "./pages/QuizPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/volunteers" element={<ProtectedRoute><VolunteersPage /></ProtectedRoute>} />
             <Route path="/classify" element={<ProtectedRoute><ClassifyPage /></ProtectedRoute>} />
             <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
+            <Route path="/games/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
