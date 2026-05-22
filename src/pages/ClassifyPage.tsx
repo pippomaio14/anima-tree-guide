@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { leafKey, startNodeId as leafStart } from "@/lib/leafKey";
 import { flowerKey, flowerStartNodeId } from "@/lib/flowerKey";
 import { budKey, budStartNodeId } from "@/lib/budKey";
+import { fruitKey, fruitStartNodeId } from "@/lib/fruitKey";
 
-type KeyMode = "leaf" | "flower" | "bud";
+type KeyMode = "leaf" | "flower" | "bud" | "fruit";
 
 const keyConfig: Record<KeyMode, {
   title: string;
@@ -19,12 +20,13 @@ const keyConfig: Record<KeyMode, {
   leaf: { title: "Chiave delle foglie", data: leafKey, start: leafStart, resultLabel: "Probabile specie" },
   flower: { title: "Chiave dei fiori", data: flowerKey, start: flowerStartNodeId, resultLabel: "Probabile pianta" },
   bud: { title: "Chiave delle gemme", data: budKey, start: budStartNodeId, resultLabel: "Probabile pianta" },
+  fruit: { title: "Chiave dei frutti", data: fruitKey, start: fruitStartNodeId, resultLabel: "Probabile pianta" },
 };
 
 const categories = [
   { key: "leaf" as const, icon: Leaf, label: "Foglia", desc: "Identifica dalla forma della foglia", color: "gradient-forest", enabled: true },
   { key: "flower" as const, icon: Flower2, label: "Fiore", desc: "Riconosci dal tipo di fiore", color: "gradient-amber", enabled: true },
-  { key: "fruit", icon: Apple, label: "Frutto", desc: "Classifica dal frutto", color: "gradient-forest", enabled: false },
+  { key: "fruit" as const, icon: Apple, label: "Frutto", desc: "Classifica dal frutto", color: "gradient-forest", enabled: true },
   { key: "bud" as const, icon: Sprout, label: "Gemma", desc: "Osserva le gemme invernali", color: "gradient-amber", enabled: true },
 ];
 
@@ -84,7 +86,7 @@ const ClassifyPage = () => {
                   transition={{ delay: i * 0.1 }}
                   onClick={() => {
                     if (!cat.enabled) return;
-                    if (cat.key === "leaf" || cat.key === "flower" || cat.key === "bud") startKey(cat.key);
+                    if (cat.key === "leaf" || cat.key === "flower" || cat.key === "bud" || cat.key === "fruit") startKey(cat.key);
                   }}
                   disabled={!cat.enabled}
                   className="relative flex flex-col items-center p-6 rounded-xl border border-border bg-card hover:shadow-forest transition-shadow disabled:opacity-60"
