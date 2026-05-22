@@ -413,9 +413,229 @@ export const fruitKey: Record<string, FruitKeyNode> = {
   ),
   q_brown_blue_pome: q(
     "q_brown_blue_pome",
-    "Il pomo è grande (2–3 cm) bruno con grandi sepali persistenti, sorba marrone, o piccolo blu-nerastro pruinoso?",
-    { label: "Grande nespola bruna con calice persistente aperto a corona", next: "res_nespolo" },
-    { label: "Sorba grande (2–3 cm) gialla/bruna piriforme su grande albero", next: "res_sorbo" },
-    },
+    "Il pomo è bruno con calice persistente, oppure blu-nerastro pruinoso?",
+    { label: "Nespola/sorba bruna con calice persistente o piriforme giallo-bruna", next: "q_nespolo_sorbo" },
+    { label: "Piccoli pomi 0,8–1 cm blu-nerastri pruinosi in racemi (Amelanchier)", next: "res_amelanchier" }
+  ),
+  q_nespolo_sorbo: q(
+    "q_nespolo_sorbo",
+    "Il frutto ha calice persistente aperto a corona (nespola) o è una sorba piriforme giallo-bruna?",
+    { label: "Nespola bruna 2–3 cm con calice a corona", next: "res_nespolo" },
+    { label: "Sorba 2–3 cm piriforme o globosa, gialla/bruna a maturità", next: "res_sorbo" }
+  ),
+  res_nespolo: r(
+    "res_nespolo",
+    "Nespolo europeo",
+    "Mespilus germanica",
+    "Pomi globosi bruni 2–3 cm con calice persistente molto aperto; commestibili dopo ammezzimento.",
+    ["Pomo 2–3 cm", "Calice a corona persistente", "Polpa dopo ammezzimento"]
+  ),
+  res_sorbo: r(
+    "res_sorbo",
+    "Sorbo domestico",
+    "Sorbus domestica",
+    "Pomi piriformi o globosi 2–3 cm gialli o bruno-rossi a maturità.",
+    ["Sorba 2–3 cm", "Piriforme o globosa", "Commestibile dopo ammezzimento"]
+  ),
+  res_amelanchier: r(
+    "res_amelanchier",
+    "Pero corvino",
+    "Amelanchier ovalis",
+    "Piccoli pomi globosi blu-nerastri pruinosi, dolci, in racemi.",
+    ["Pomo 0,8–1 cm", "Blu pruinoso", "In racemi terminali"]
+  ),
+
+  // ============ DRUPE / BACCHE ============
+  q_drupe_berry: q(
+    "q_drupe_berry",
+    "Il frutto contiene un solo nocciolo legnoso (drupa) o più semi piccoli nella polpa (bacca)?",
+    { label: "Drupa (un nocciolo unico, tipo ciliegia/oliva)", next: "q_drupe_color" },
+    { label: "Bacca con più semi (sambuco, viburni, crespino, olivello)", next: "q_berry" }
+  ),
+
+  q_drupe_color: q(
+    "q_drupe_color",
+    "Di che colore è la drupa a maturità?",
+    { label: "Nera, blu-nera o viola scura", next: "q_drupe_dark" },
+    { label: "Rossa, arancione, gialla o argentea", next: "q_drupe_light" }
+  ),
+  q_drupe_dark: q(
+    "q_drupe_dark",
+    "L'albero/arbusto ha foglie sempreverdi coriacee e aromatiche?",
+    { label: "Sì — sempreverde aromatico", next: "q_evergreen_drupe" },
+    { label: "No — caducifoglio", next: "q_decid_dark_drupe" }
+  ),
+  q_evergreen_drupe: q(
+    "q_evergreen_drupe",
+    "Schiacciando una foglia, che odore senti?",
+    { label: "Forte aroma (alloro da cucina o canfora)", next: "q_alloro_canfora" },
+    { label: "Nessun aroma forte: foglie grandi lucide o piccole opposte", next: "q_lauro_ligustro" }
+  ),
+  q_alloro_canfora: q(
+    "q_alloro_canfora",
+    "L'aroma è di alloro o di canfora?",
+    { label: "Alloro da cucina, drupa nera ovale 1–1,5 cm", next: "res_alloro" },
+    { label: "Canfora intensa, drupa nera globosa 8 mm", next: "res_canfora" }
+  ),
+  res_alloro: r(
+    "res_alloro",
+    "Alloro",
+    "Laurus nobilis",
+    "Drupe ovali nere lucide 1–1,5 cm, pianta dioica sempreverde aromatica.",
+    ["Drupa nera ovale", "Foglie aromatiche", "Sempreverde"]
+  ),
+  res_canfora: r(
+    "res_canfora",
+    "Albero della canfora",
+    "Cinnamomum camphora",
+    "Piccole drupe nero-bluastre 7–10 mm; foglie con odore di canfora.",
+    ["Drupa nera 8 mm", "Odore di canfora", "Sempreverde lucido"]
+  ),
+  q_lauro_ligustro: q(
+    "q_lauro_ligustro",
+    "Le foglie sono grandi (10–15 cm) lanceolate lucide o piccole (5–8 cm) opposte ovali?",
+    { label: "Foglie grandi lanceolate, drupa nera tipo piccola ciliegia (tossica)", next: "res_lauroceraso" },
+    { label: "Foglie opposte ovali, drupe nere globose in pannocchie", next: "res_ligustro" }
+  ),
+  res_lauroceraso: r(
+    "res_lauroceraso",
+    "Lauroceraso",
+    "Prunus laurocerasus 'Rotundifolia'",
+    "Drupe simili a piccole ciliegie nere lucide, tossiche; foglie grandi sempreverdi.",
+    ["Drupa nera 1 cm", "Tossica", "Foglie coriacee lucide"]
+  ),
+  res_ligustro: r(
+    "res_ligustro",
+    "Ligustro del Giappone",
+    "Ligustrum japonicum",
+    "Drupe nere globose in pannocchie, foglie opposte sempreverdi coriacee.",
+    ["Drupa nera 6–8 mm", "In pannocchie", "Foglie opposte"]
+  ),
+  q_decid_dark_drupe: q(
+    "q_decid_dark_drupe",
+    "La drupa è portata in racemi penduli o singola/in mazzetti?",
+    { label: "In racemi penduli di drupe nere piccole", next: "res_pado" },
+    { label: "Singola o a piccoli gruppi", next: "q_prunus_dark" }
+  ),
+  res_pado: r(
+    "res_pado",
+    "Pado o Ciliegio a grappolo",
+    "Prunus padus",
+    "Drupe nere globose 6–8 mm in lunghi racemi penduli, amare.",
+    ["Drupa nera in racemo", "Racemi 10–15 cm", "Amare"]
+  ),
+  q_prunus_dark: q(
+    "q_prunus_dark",
+    "Quale aspetto ha la pianta?",
+    { label: "Arbusto molto spinoso, drupa nero-bluastra pruinosa 6–12 mm", next: "res_prugnolo" },
+    { label: "Alberello senza spine, drupa nera lucida 6–8 mm amara", next: "res_mahaleb" }
+  ),
+  res_prugnolo: r(
+    "res_prugnolo",
+    "Prugnolo selvatico",
+    "Prunus spinosa",
+    "Drupe globose 6–12 mm nero-bluastre pruinose, molto astringenti.",
+    ["Drupa pruinosa", "Arbusto spinoso", "Maturazione tardo-autunnale"]
+  ),
+  res_mahaleb: r(
+    "res_mahaleb",
+    "Ciliegio canino",
+    "Prunus mahaleb",
+    "Piccole drupe nere lucide 6–8 mm, amare; legno aromatico.",
+    ["Drupa nera 6–8 mm", "Amara", "Foglie con ghiandole al picciolo"]
+  ),
+
+  q_drupe_light: q(
+    "q_drupe_light",
+    "Di che aspetto è la drupa?",
+    { label: "Argentea o farinosa giallo-argento (Eleagnus)", next: "res_olivagno" },
+    { label: "Rossa, gialla, oblunga o globosa", next: "q_red_drupe" }
+  ),
+  res_olivagno: r(
+    "res_olivagno",
+    "Olivagno",
+    "Eleagnus angustifolia",
+    "Drupe oblunghe 1 cm color giallo-argento farinose; foglie e rami argentei.",
+    ["Drupa argentea farinosa", "Foglie strette argentee", "Rami spinescenti"]
+  ),
+  q_red_drupe: q(
+    "q_red_drupe",
+    "La drupa è oblunga rosso rubino (corniolo) o globosa rossa/gialla (amolo)?",
+    { label: "Oblunga rosso rubino 1,5–2 cm, fioritura gialla precoce", next: "res_corniolo" },
+    { label: "Globosa 2–3 cm rossa o gialla, tipo piccola susina", next: "res_amolo" }
+  ),
+  res_corniolo: r(
+    "res_corniolo",
+    "Corniolo",
+    "Cornus mas",
+    "Drupe oblunghe rosso rubino 1,5–2 cm, dolci-acidule; fioritura gialla precoce.",
+    ["Drupa rossa oblunga", "Commestibile", "Fiori gialli febbraio"]
+  ),
+  res_amolo: r(
+    "res_amolo",
+    "Amolo o Mirabolano",
+    "Prunus cerasifera",
+    "Drupe globose 2–3 cm rosse o gialle, dolci, simili a piccole susine.",
+    ["Drupa 2–3 cm", "Rossa o gialla", "Fioritura bianca precocissima"]
+  ),
+
+  q_berry: q(
+    "q_berry",
+    "Le bacche sono in ampi corimbi/cime o in racemi/gruppi sui rametti?",
+    { label: "In ampi corimbi piatti o cime ombrelliformi", next: "q_corymb_berry" },
+    { label: "In racemi penduli, mazzetti o fittamente sui rametti", next: "q_raceme_berry" }
+  ),
+  q_corymb_berry: q(
+    "q_corymb_berry",
+    "Di che colore sono le bacche?",
+    { label: "Nere, in grandi corimbi piatti penduli", next: "res_sambuco" },
+    { label: "Rosse traslucide o blu metalliche", next: "q_viburnum" }
+  ),
+  res_sambuco: r(
+    "res_sambuco",
+    "Sambuco",
+    "Sambucus nigra",
+    "Piccole bacche nere lucide 5–6 mm in grandi corimbi piatti penduli.",
+    ["Bacche nere in corimbi", "Midollo bianco nei rami", "Fiori bianchi profumati"]
+  ),
+  q_viburnum: q(
+    "q_viburnum",
+    "Le bacche sono rosse traslucide o blu metalliche?",
+    { label: "Rosse traslucide, lucide, su arbusto caducifoglio", next: "res_pallon" },
+    { label: "Blu-nere metalliche su arbusto sempreverde", next: "res_tino" }
+  ),
+  res_pallon: r(
+    "res_pallon",
+    "Pallon di Maggio",
+    "Viburnum opulus",
+    "Drupe-bacche rosse traslucide in cime, persistenti d'inverno.",
+    ["Bacca rossa traslucida", "Foglie trilobate", "Caducifoglio"]
+  ),
+  res_tino: r(
+    "res_tino",
+    "Viburno tino",
+    "Viburnum tinus",
+    "Bacche blu-metalliche ovoidi 5–7 mm in cime, su arbusto sempreverde.",
+    ["Bacca blu metallica", "Sempreverde", "Fioritura invernale"]
+  ),
+  q_raceme_berry: q(
+    "q_raceme_berry",
+    "Di che colore sono le bacche?",
+    { label: "Rosse oblunghe in racemi penduli, su arbusto con spine trifide", next: "res_crespino" },
+    { label: "Arancio vivo, fitte sui rametti spinosi argentei", next: "res_olivello" }
+  ),
+  res_crespino: r(
+    "res_crespino",
+    "Crespino comune",
+    "Berberis vulgaris",
+    "Bacche rosse oblunghe 8–10 mm in racemi penduli, acidule; spine trifide.",
+    ["Bacca rossa oblunga", "Spine trifide", "Acidule"]
+  ),
+  res_olivello: r(
+    "res_olivello",
+    "Olivello spinoso",
+    "Hippophae rhamnoides",
+    "Bacche arancio vivo 6–8 mm fittamente disposte sui rametti spinosi; ricche di vitamina C.",
+    ["Bacche arancio", "Rami spinosi", "Foglie argentee strette"]
   ),
 };
