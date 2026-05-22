@@ -86,7 +86,7 @@ const ClassifyPage = () => {
                   transition={{ delay: i * 0.1 }}
                   onClick={() => {
                     if (!cat.enabled) return;
-                    if (cat.key === "leaf" || cat.key === "flower" || cat.key === "bud") startKey(cat.key);
+                    if (cat.key === "leaf" || cat.key === "flower" || cat.key === "bud" || cat.key === "fruit") startKey(cat.key);
                   }}
                   disabled={!cat.enabled}
                   className="relative flex flex-col items-center p-6 rounded-xl border border-border bg-card hover:shadow-forest transition-shadow disabled:opacity-60"
