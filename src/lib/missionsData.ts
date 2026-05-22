@@ -1,0 +1,136 @@
+export interface Mission {
+  id: string;
+  title: string;
+  description: string;
+  objective: string;
+  points: number;
+  difficulty: "facile" | "media" | "difficile";
+  icon: string; // lucide name
+  tips?: string[];
+}
+
+export const missions: Mission[] = [
+  {
+    id: "tree-hunter",
+    title: "Cacciatore di Alberi",
+    description: "Trova e fotografa 5 alberi diversi adottati nel parco.",
+    objective: "Scatta una foto a 5 alberi distinti usando la mappa per localizzarli.",
+    points: 50,
+    difficulty: "facile",
+    icon: "TreePine",
+    tips: [
+      "Usa la sezione Alberi per vedere le posizioni GPS",
+      "Annota il numero di ogni albero che incontri",
+    ],
+  },
+  {
+    id: "leaf-collector",
+    title: "Erbario del Bosco",
+    description: "Riconosci 3 specie diverse usando la chiave dicotomica delle foglie.",
+    objective: "Identifica 3 alberi osservando foglie cadute (senza staccarle dai rami).",
+    points: 40,
+    difficulty: "facile",
+    icon: "Leaf",
+    tips: ["Raccogli solo foglie a terra", "Confronta forma, margine e nervature"],
+  },
+  {
+    id: "flower-spotter",
+    title: "Caccia ai Fiori",
+    description: "Individua 4 specie in fioritura nel periodo della tua visita.",
+    objective: "Riconosci 4 piante diverse tramite i loro fiori (anche poco vistosi).",
+    points: 50,
+    difficulty: "media",
+    icon: "Flower2",
+    tips: ["Cerca fiori anche piccoli o verdi", "Osserva senza raccogliere"],
+  },
+  {
+    id: "bird-listener",
+    title: "Orecchio del Bosco",
+    description: "Ascolta e riconosci almeno 3 canti di uccelli diversi.",
+    objective: "Fermati in 3 punti del bosco e ascolta per 2 minuti in silenzio.",
+    points: 40,
+    difficulty: "media",
+    icon: "Bird",
+    tips: ["Vai all'alba o nel primo mattino", "Usa un'app di riconoscimento canti"],
+  },
+  {
+    id: "water-guardian",
+    title: "Guardiano dell'Acqua",
+    description: "Localizza tutte le fonti d'acqua presenti nel parco (fontane, ruscelli, stagni).",
+    objective: "Trova almeno 2 punti d'acqua e verificane lo stato di pulizia.",
+    points: 30,
+    difficulty: "facile",
+    icon: "Droplets",
+    tips: ["Segnala eventuali rifiuti agli organizzatori"],
+  },
+  {
+    id: "fungi-finder",
+    title: "Esploratore dei Funghi",
+    description: "Trova 3 funghi diversi senza raccoglierli.",
+    objective: "Fotografa 3 funghi in habitat naturale (tronchi, lettiera, prato).",
+    points: 40,
+    difficulty: "media",
+    icon: "Sprout",
+    tips: ["Non toccare con le mani", "I funghi sono fondamentali per il bosco"],
+  },
+  {
+    id: "clean-keeper",
+    title: "Custode del Bosco",
+    description: "Raccogli almeno un piccolo sacchetto di rifiuti abbandonati lungo il sentiero.",
+    objective: "Porta a casa solo ricordi, lascia il parco più pulito di come l'hai trovato.",
+    points: 60,
+    difficulty: "facile",
+    icon: "Trash2",
+    tips: ["Usa guanti", "Separa plastica, vetro e carta"],
+  },
+  {
+    id: "insect-safari",
+    title: "Safari degli Insetti",
+    description: "Osserva 5 invertebrati diversi: api, farfalle, coccinelle, formiche, ragni…",
+    objective: "Fotografa 5 piccoli animali invertebrati senza disturbarli.",
+    points: 40,
+    difficulty: "media",
+    icon: "Bug",
+    tips: ["Cerca tra i fiori e sotto le foglie", "Resta immobile e osserva"],
+  },
+  {
+    id: "old-tree",
+    title: "Il Patriarca del Bosco",
+    description: "Trova l'albero più grande del parco e abbraccialo.",
+    objective: "Misura la circonferenza con le braccia: quante persone servono?",
+    points: 30,
+    difficulty: "facile",
+    icon: "Trees",
+    tips: ["Spesso i più grandi sono querce o castagni", "Misura ad altezza del petto"],
+  },
+  {
+    id: "silent-walk",
+    title: "Camminata Silenziosa",
+    description: "Percorri 15 minuti di sentiero in completo silenzio.",
+    objective: "Ascolta solo i suoni della natura: vento, foglie, animali.",
+    points: 30,
+    difficulty: "facile",
+    icon: "Footprints",
+    tips: ["Spegni il telefono", "Cammina lentamente"],
+  },
+  {
+    id: "season-diary",
+    title: "Diario delle Stagioni",
+    description: "Scatta una foto allo stesso scorcio del parco in 3 stagioni diverse.",
+    objective: "Documenta i cambiamenti del bosco nel tempo.",
+    points: 70,
+    difficulty: "difficile",
+    icon: "Sun",
+    tips: ["Salva la posizione GPS", "Stesso orario, stessa inquadratura"],
+  },
+  {
+    id: "biodiversity-map",
+    title: "Mappa della Biodiversità",
+    description: "Identifica almeno 10 specie diverse tra piante e animali in un'unica uscita.",
+    objective: "Compila la tua lista con nomi comuni e scientifici.",
+    points: 100,
+    difficulty: "difficile",
+    icon: "Sparkles",
+    tips: ["Combina chiavi di foglie, fiori e gemme", "Coinvolgi un esperto"],
+  },
+];
