@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 
 const games = [
   { icon: Brain, label: "Quiz sulla Natura", desc: "Metti alla prova le tue conoscenze", color: "gradient-forest", path: "/games/quiz", enabled: true },
-  { icon: Puzzle, label: "Indovina l'Albero", desc: "Riconosci le specie del bosco", color: "gradient-amber", path: "", enabled: false },
-  { icon: Trophy, label: "Sfida del Bosco", desc: "Completa le missioni nel parco", color: "gradient-forest", path: "", enabled: false },
+  { icon: Trophy, label: "Sfida del Bosco", desc: "Completa le missioni nel parco", color: "gradient-amber", path: "/games/challenge", enabled: true },
+  { icon: Puzzle, label: "Indovina l'Albero", desc: "Riconosci le specie del bosco", color: "gradient-forest", path: "", enabled: false },
 ];
 
 const GamesPage = () => {
