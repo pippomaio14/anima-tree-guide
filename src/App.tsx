@@ -17,6 +17,7 @@ import ClassifyPage from "./pages/ClassifyPage";
 import GamesPage from "./pages/GamesPage";
 import QuizPage from "./pages/QuizPage";
 import ChallengePage from "./pages/ChallengePage";
+import TreeGuessPage from "./pages/TreeGuessPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
             <Route path="/games/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
             <Route path="/games/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
+            <Route path="/games/tree-guess" element={<ProtectedRoute><TreeGuessPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
