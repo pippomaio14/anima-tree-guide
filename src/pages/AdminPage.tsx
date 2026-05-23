@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
-import { Users, TreePine, Calendar, BookOpen, Bell, Heart, Info } from "lucide-react";
+import { Users, TreePine, Calendar, BookOpen, Bell, Heart, Info, Brain, Trophy, Puzzle } from "lucide-react";
 import AdminTreesTab from "@/components/admin/AdminTreesTab";
 import AdminEventsTab from "@/components/admin/AdminEventsTab";
 import AdminArticlesTab from "@/components/admin/AdminArticlesTab";
@@ -15,6 +15,9 @@ import AdminUsersTab from "@/components/admin/AdminUsersTab";
 import AdminAnnouncementsTab from "@/components/admin/AdminAnnouncementsTab";
 import AdminVolunteersTab from "@/components/admin/AdminVolunteersTab";
 import AdminParkSectionsTab from "@/components/admin/AdminParkSectionsTab";
+import AdminQuizTab from "@/components/admin/AdminQuizTab";
+import AdminMissionsTab from "@/components/admin/AdminMissionsTab";
+import AdminTreeGuessTab from "@/components/admin/AdminTreeGuessTab";
 
 const AdminPage = () => {
   const { isAdmin, loading } = useAuth();
@@ -55,7 +58,7 @@ const AdminPage = () => {
       <PageHeader title="Amministrazione" />
       <div className="p-4">
         <Tabs defaultValue="trees" className="w-full">
-          <TabsList className="w-full grid grid-cols-7 mb-4">
+          <TabsList className="w-full grid grid-cols-10 mb-4">
             <TabsTrigger value="trees" className="text-xs px-1"><TreePine className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="events" className="text-xs px-1"><Calendar className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="articles" className="text-xs px-1"><BookOpen className="w-3.5 h-3.5" /></TabsTrigger>
@@ -63,6 +66,9 @@ const AdminPage = () => {
             <TabsTrigger value="announcements" className="text-xs px-1"><Bell className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="volunteers" className="text-xs px-1"><Heart className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="users" className="text-xs px-1"><Users className="w-3.5 h-3.5" /></TabsTrigger>
+            <TabsTrigger value="quiz" className="text-xs px-1"><Brain className="w-3.5 h-3.5" /></TabsTrigger>
+            <TabsTrigger value="missions" className="text-xs px-1"><Trophy className="w-3.5 h-3.5" /></TabsTrigger>
+            <TabsTrigger value="treeguess" className="text-xs px-1"><Puzzle className="w-3.5 h-3.5" /></TabsTrigger>
           </TabsList>
 
           <TabsContent value="trees">
@@ -85,6 +91,15 @@ const AdminPage = () => {
           </TabsContent>
           <TabsContent value="users">
             <AdminUsersTab users={users} onReload={loadData} />
+          </TabsContent>
+          <TabsContent value="quiz">
+            <AdminQuizTab />
+          </TabsContent>
+          <TabsContent value="missions">
+            <AdminMissionsTab />
+          </TabsContent>
+          <TabsContent value="treeguess">
+            <AdminTreeGuessTab />
           </TabsContent>
         </Tabs>
       </div>
