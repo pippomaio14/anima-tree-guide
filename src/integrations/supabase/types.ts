@@ -187,6 +187,51 @@ export type Database = {
         }
         Relationships: []
       }
+      missions: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty: string
+          icon: string | null
+          id: string
+          objective: string | null
+          points: number
+          published: boolean
+          sort_order: number
+          tips: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          objective?: string | null
+          points?: number
+          published?: boolean
+          sort_order?: number
+          tips?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          objective?: string | null
+          points?: number
+          published?: boolean
+          sort_order?: number
+          tips?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       park_sections: {
         Row: {
           content: string | null
@@ -253,6 +298,122 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          published: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          published?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          published?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quiz_questions: {
+        Row: {
+          category_id: string
+          correct_index: number
+          created_at: string
+          explanation: string | null
+          id: string
+          options: string[]
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          correct_index?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: string[]
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          correct_index?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: string[]
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tree_guess_items: {
+        Row: {
+          created_at: string
+          hint: string | null
+          id: string
+          image_url: string
+          published: boolean
+          scientific_name: string | null
+          sort_order: number
+          species_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hint?: string | null
+          id?: string
+          image_url: string
+          published?: boolean
+          scientific_name?: string | null
+          sort_order?: number
+          species_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hint?: string | null
+          id?: string
+          image_url?: string
+          published?: boolean
+          scientific_name?: string | null
+          sort_order?: number
+          species_name?: string
+          updated_at?: string
         }
         Relationships: []
       }
