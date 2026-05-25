@@ -103,6 +103,9 @@ const AdminPage = () => {
           <TabsContent value="treeguess">
             <AdminTreeGuessTab />
           </TabsContent>
+          <TabsContent value="dkeys">
+            <AdminDichotomousKeysTab />
+          </TabsContent>
         </Tabs>
       </div>
     </MobileLayout>
