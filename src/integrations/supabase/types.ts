@@ -119,6 +119,63 @@ export type Database = {
         }
         Relationships: []
       }
+      dichotomous_key_nodes: {
+        Row: {
+          characteristics: string[]
+          created_at: string
+          description: string | null
+          hint: string | null
+          id: string
+          key_type: string
+          node_id: string
+          node_type: string
+          option_a_label: string | null
+          option_a_next: string | null
+          option_b_label: string | null
+          option_b_next: string | null
+          question: string | null
+          scientific_name: string | null
+          species: string | null
+          updated_at: string
+        }
+        Insert: {
+          characteristics?: string[]
+          created_at?: string
+          description?: string | null
+          hint?: string | null
+          id?: string
+          key_type: string
+          node_id: string
+          node_type: string
+          option_a_label?: string | null
+          option_a_next?: string | null
+          option_b_label?: string | null
+          option_b_next?: string | null
+          question?: string | null
+          scientific_name?: string | null
+          species?: string | null
+          updated_at?: string
+        }
+        Update: {
+          characteristics?: string[]
+          created_at?: string
+          description?: string | null
+          hint?: string | null
+          id?: string
+          key_type?: string
+          node_id?: string
+          node_type?: string
+          option_a_label?: string | null
+          option_a_next?: string | null
+          option_b_label?: string | null
+          option_b_next?: string | null
+          question?: string | null
+          scientific_name?: string | null
+          species?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_bookings: {
         Row: {
           created_at: string
