@@ -20,6 +20,7 @@ import ChallengePage from "./pages/ChallengePage";
 import TreeGuessPage from "./pages/TreeGuessPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import SplashScreen from "./components/SplashScreen";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <SplashScreen />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
