@@ -49,12 +49,11 @@ const LoginPage = () => {
         className="w-full max-w-sm space-y-8"
       >
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-forest shadow-forest mb-4">
-            <TreePine className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Bosco Anima Mundi
-          </h1>
+          <img
+            src="/logo.png"
+            alt="Parco Bosco Anima Mundi"
+            className="w-32 h-32 mx-auto mb-2 object-contain"
+          />
           <p className="text-muted-foreground text-sm">
             Parco di Camisano Vicentino
           </p>
