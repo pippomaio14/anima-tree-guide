@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
-import { Users, TreePine, Calendar, BookOpen, Bell, Heart, Info, Brain, Trophy, Puzzle, Leaf } from "lucide-react";
+import { Users, TreePine, Calendar, BookOpen, Bell, Heart, Info, Brain, Trophy, Puzzle, Leaf, FileText } from "lucide-react";
 import AdminTreesTab from "@/components/admin/AdminTreesTab";
 import AdminEventsTab from "@/components/admin/AdminEventsTab";
 import AdminArticlesTab from "@/components/admin/AdminArticlesTab";
@@ -19,6 +19,7 @@ import AdminQuizTab from "@/components/admin/AdminQuizTab";
 import AdminMissionsTab from "@/components/admin/AdminMissionsTab";
 import AdminTreeGuessTab from "@/components/admin/AdminTreeGuessTab";
 import AdminDichotomousKeysTab from "@/components/admin/AdminDichotomousKeysTab";
+import AdminLegalTab from "@/components/admin/AdminLegalTab";
 
 const AdminPage = () => {
   const { isAdmin, loading } = useAuth();
