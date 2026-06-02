@@ -21,6 +21,7 @@ import TreeGuessPage from "./pages/TreeGuessPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "./components/SplashScreen";
+import LegalPage from "./pages/LegalPage";
 
 const queryClient = new QueryClient();
 
