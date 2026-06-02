@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { BookOpen } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
@@ -47,7 +48,7 @@ const ArticlesPage = () => {
                   animate={{ height: "auto", opacity: 1 }}
                   className="mt-3 pt-3 border-t border-border"
                 >
-                  <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: article.content }} />
+                  <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.content) }} />
                 </motion.div>
               )}
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
 import { Users, Heart, Bell, Mail } from "lucide-react";
@@ -59,7 +60,7 @@ const VolunteersPage = () => {
                     <p className="text-sm font-semibold text-foreground">{a.title}</p>
                     <p className="text-xs text-muted-foreground mb-1">{new Date(a.created_at).toLocaleDateString("it-IT")}</p>
                     {a.content && (
-                      <div className="text-sm text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: a.content }} />
+                      <div className="text-sm text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(a.content) }} />
                     )}
                   </div>
                 </div>

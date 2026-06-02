@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { useAuth } from "@/hooks/useAuth";
 import { Calendar, MapPin, Users, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -89,7 +90,7 @@ const EventsPage = () => {
               animate={{ height: "auto", opacity: 1 }}
               className="pt-3 border-t border-border"
             >
-              <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div className="prose prose-sm max-w-none text-muted-foreground rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(event.description) }} />
             </motion.div>
           )}
           {event.booking_enabled && !isPast && (

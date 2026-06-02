@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeHtml } from "@/lib/sanitize";
 import PageHeader from "@/components/PageHeader";
 import MobileLayout from "@/components/MobileLayout";
 import { TreePine, Target, Heart, Globe, Leaf, Sun, Mountain, Flower2 } from "lucide-react";
@@ -48,7 +49,7 @@ const ParkInfoPage = () => {
                 </div>
                 <h2 className="font-display font-semibold text-foreground">{section.title}</h2>
               </div>
-              <div className="text-sm text-muted-foreground leading-relaxed rich-content" dangerouslySetInnerHTML={{ __html: section.content || "" }} />
+              <div className="text-sm text-muted-foreground leading-relaxed rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(section.content) }} />
             </motion.div>
           );
         })}
