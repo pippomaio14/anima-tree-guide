@@ -108,6 +108,9 @@ const AdminPage = () => {
           <TabsContent value="dkeys">
             <AdminDichotomousKeysTab />
           </TabsContent>
+          <TabsContent value="legal">
+            <AdminLegalTab />
+          </TabsContent>
         </Tabs>
       </div>
     </MobileLayout>
