@@ -60,7 +60,7 @@ const AdminPage = () => {
       <PageHeader title="Amministrazione" />
       <div className="p-4">
         <Tabs defaultValue="trees" className="w-full">
-          <TabsList className="w-full grid grid-cols-11 mb-4">
+          <TabsList className="w-full grid grid-cols-12 mb-4">
             <TabsTrigger value="trees" className="text-xs px-1"><TreePine className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="events" className="text-xs px-1"><Calendar className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="articles" className="text-xs px-1"><BookOpen className="w-3.5 h-3.5" /></TabsTrigger>
@@ -72,6 +72,7 @@ const AdminPage = () => {
             <TabsTrigger value="missions" className="text-xs px-1"><Trophy className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="treeguess" className="text-xs px-1"><Puzzle className="w-3.5 h-3.5" /></TabsTrigger>
             <TabsTrigger value="dkeys" className="text-xs px-1"><Leaf className="w-3.5 h-3.5" /></TabsTrigger>
+            <TabsTrigger value="legal" className="text-xs px-1"><FileText className="w-3.5 h-3.5" /></TabsTrigger>
           </TabsList>
 
           <TabsContent value="trees">
