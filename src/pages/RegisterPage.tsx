@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { TreePine } from "lucide-react";
+import { TreePine, ShieldCheck, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
 const RegisterPage = () => {
@@ -16,12 +16,22 @@ const RegisterPage = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [isVolunteer, setIsVolunteer] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [liabilityAccepted, setLiabilityAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone.trim()) {
       toast.error("Il numero di telefono è obbligatorio");
+      return;
+    }
+    if (!privacyAccepted) {
+      toast.error("Devi accettare l'informativa sulla privacy");
+      return;
+    }
+    if (!liabilityAccepted) {
+      toast.error("Devi accettare l'esonero di responsabilità");
       return;
     }
     setLoading(true);
@@ -43,7 +53,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8 bg-background">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -92,7 +102,57 @@ const RegisterPage = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full gradient-forest text-primary-foreground shadow-forest" disabled={loading}>
+          <div className="flex items-start space-x-3 rounded-lg border border-border p-3 bg-muted/30">
+            <Checkbox
+              id="privacy"
+              checked={privacyAccepted}
+              onCheckedChange={(checked) => setPrivacyAccepted(checked === true)}
+              className="mt-0.5"
+              required
+            />
+            <div className="space-y-1">
+              <Label htmlFor="privacy" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-primary" /> Informativa Privacy (GDPR)
+              </Label>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Ai sensi del Reg. UE 2016/679, acconsento al trattamento dei miei dati personali
+                (nome, email, telefono, geolocalizzazione durante l'uso dell'app) per la gestione
+                dell'account e l'erogazione dei servizi del Parco.{" "}
+                <Link to="/legal/privacy" target="_blank" className="text-primary underline font-medium">
+                  Leggi l'informativa completa
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start space-x-3 rounded-lg border border-border p-3 bg-muted/30">
+            <Checkbox
+              id="liability"
+              checked={liabilityAccepted}
+              onCheckedChange={(checked) => setLiabilityAccepted(checked === true)}
+              className="mt-0.5"
+              required
+            />
+            <div className="space-y-1">
+              <Label htmlFor="liability" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-primary" /> Esonero di Responsabilità
+              </Label>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Accetto espressamente che il Parco Bosco Anima Mundi non ha alcuna responsabilità
+                per danni, furto di dati o qualsiasi altro problema causato dall'installazione o
+                dall'uso dell'app.{" "}
+                <Link to="/legal/liability" target="_blank" className="text-primary underline font-medium">
+                  Leggi il testo completo
+                </Link>
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full gradient-forest text-primary-foreground shadow-forest"
+            disabled={loading || !privacyAccepted || !liabilityAccepted}
+          >
             {loading ? "Registrazione..." : "Crea Account"}
           </Button>
         </form>
