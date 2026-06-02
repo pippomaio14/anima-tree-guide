@@ -60,6 +60,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ error: "Azione non valida" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("admin-users error:", err);
+    return new Response(JSON.stringify({ error: "Operazione non riuscita. Riprovare." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
