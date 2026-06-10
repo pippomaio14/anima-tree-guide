@@ -110,6 +110,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
           <Input placeholder="Dedicato a" value={newTree.dedicated_to} onChange={(e) => setNewTree({ ...newTree, dedicated_to: e.target.value })} />
           <Input placeholder="Specie" value={newTree.tree_species} onChange={(e) => setNewTree({ ...newTree, tree_species: e.target.value })} />
         </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Input placeholder="Email adottante" type="email" value={newTree.adopter_email} onChange={(e) => setNewTree({ ...newTree, adopter_email: e.target.value })} />
+          <Input placeholder="Telefono adottante" type="tel" value={newTree.adopter_phone} onChange={(e) => setNewTree({ ...newTree, adopter_phone: e.target.value })} />
+        </div>
         <Input placeholder="Dedica" value={newTree.dedication_message} onChange={(e) => setNewTree({ ...newTree, dedication_message: e.target.value })} />
         <Input placeholder="Periodo adozione" value={newTree.adoption_period} onChange={(e) => setNewTree({ ...newTree, adoption_period: e.target.value })} />
         <div className="grid grid-cols-2 gap-2">
