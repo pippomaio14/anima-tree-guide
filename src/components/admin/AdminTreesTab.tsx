@@ -64,7 +64,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     const payload = { ...newTree, latitude: newTree.latitude ? parseFloat(newTree.latitude) : null, longitude: newTree.longitude ? parseFloat(newTree.longitude) : null };
     const { error } = await supabase.from("adopted_trees").insert([payload]);
     if (error) toast.error(error.message);
-    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" }); onReload(); }
+    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", adopter_email: "", adopter_phone: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" }); onReload(); }
   };
 
   const deleteTree = async (id: string) => {
