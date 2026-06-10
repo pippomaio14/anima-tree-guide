@@ -98,7 +98,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><Upload className="w-4 h-4" /> Importa CSV</h3>
-        <p className="text-xs text-muted-foreground">Colonne: numero, adottante, dedicato_a, dedica, periodo</p>
+        <p className="text-xs text-muted-foreground">Colonne: numero, adottante, email, telefono, dedicato_a, dedica, periodo</p>
         <Input type="file" accept=".csv,.txt" onChange={handleCSVImport} />
       </div>
 
