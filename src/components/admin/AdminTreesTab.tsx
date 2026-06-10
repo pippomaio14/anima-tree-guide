@@ -12,7 +12,7 @@ interface AdminTreesTabProps {
 }
 
 const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
-  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
+  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", adopter_email: "", adopter_phone: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
