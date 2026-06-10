@@ -47,6 +47,8 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
       headers.forEach((h, i) => {
         if (h.includes("numero") || h === "number") row.tree_number = vals[i] || "";
         else if (h.includes("adottante") || h.includes("adopter")) row.adopter_name = vals[i] || "";
+        else if (h.includes("email") || h.includes("mail")) row.adopter_email = vals[i] || null;
+        else if (h.includes("telefono") || h.includes("phone") || h.includes("tel")) row.adopter_phone = vals[i] || null;
         else if (h.includes("dedicat") && !h.includes("messag")) row.dedicated_to = vals[i] || null;
         else if (h.includes("dedica") || h.includes("messag")) row.dedication_message = vals[i] || null;
         else if (h.includes("periodo") || h.includes("period")) row.adoption_period = vals[i] || null;
