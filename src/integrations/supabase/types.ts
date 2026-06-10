@@ -527,54 +527,7 @@ export type Database = {
       }
     }
     Views: {
-      trees_public: {
-        Row: {
-          adopter_name: string | null
-          adoption_period: string | null
-          created_at: string | null
-          dedicated_to: string | null
-          dedication_message: string | null
-          id: string | null
-          image_url: string | null
-          latitude: number | null
-          longitude: number | null
-          published: boolean | null
-          tree_number: string | null
-          tree_species: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          adopter_name?: string | null
-          adoption_period?: string | null
-          created_at?: string | null
-          dedicated_to?: string | null
-          dedication_message?: string | null
-          id?: string | null
-          image_url?: string | null
-          latitude?: never
-          longitude?: never
-          published?: boolean | null
-          tree_number?: string | null
-          tree_species?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          adopter_name?: string | null
-          adoption_period?: string | null
-          created_at?: string | null
-          dedicated_to?: string | null
-          dedication_message?: string | null
-          id?: string | null
-          image_url?: string | null
-          latitude?: never
-          longitude?: never
-          published?: boolean | null
-          tree_number?: string | null
-          tree_species?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       has_role: {
@@ -583,6 +536,25 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_trees_public: {
+        Args: never
+        Returns: {
+          adopter_name: string
+          adoption_period: string
+          created_at: string
+          dedicated_to: string
+          dedication_message: string
+          id: string
+          image_url: string
+          is_owner: boolean
+          latitude: number
+          longitude: number
+          published: boolean
+          tree_number: string
+          tree_species: string
+          updated_at: string
+        }[]
       }
     }
     Enums: {
