@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       adopted_trees: {
         Row: {
+          adopter_email: string | null
           adopter_name: string
+          adopter_phone: string | null
           adoption_period: string | null
           created_at: string
           dedicated_to: string | null
@@ -31,7 +33,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adopter_email?: string | null
           adopter_name: string
+          adopter_phone?: string | null
           adoption_period?: string | null
           created_at?: string
           dedicated_to?: string | null
@@ -46,7 +50,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adopter_email?: string | null
           adopter_name?: string
+          adopter_phone?: string | null
           adoption_period?: string | null
           created_at?: string
           dedicated_to?: string | null
@@ -530,6 +536,25 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_trees_public: {
+        Args: never
+        Returns: {
+          adopter_name: string
+          adoption_period: string
+          created_at: string
+          dedicated_to: string
+          dedication_message: string
+          id: string
+          image_url: string
+          is_owner: boolean
+          latitude: number
+          longitude: number
+          published: boolean
+          tree_number: string
+          tree_species: string
+          updated_at: string
+        }[]
       }
     }
     Enums: {

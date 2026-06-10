@@ -31,13 +31,14 @@ const TreeSearchPage = () => {
       return;
     }
     const search = async () => {
-      const searchTerm = `%${query}%`;
-      const { data } = await supabase
-        .from("adopted_trees")
-        .select("*")
-        .or(`adopter_name.ilike.${searchTerm},dedicated_to.ilike.${searchTerm},tree_number.ilike.${searchTerm},dedication_message.ilike.${searchTerm},tree_species.ilike.${searchTerm}`)
-        .limit(20);
-      setTrees((data as AdoptedTree[]) || []);
+      const { data } = await supabase.rpc("list_trees_public");
+      const q = query.toLowerCase();
+      const filtered = ((data as AdoptedTree[]) || []).filter((t) =>
+        [t.adopter_name, t.dedicated_to, t.tree_number, t.dedication_message, t.tree_species]
+          .filter(Boolean)
+          .some((f) => (f as string).toLowerCase().includes(q))
+      ).slice(0, 20);
+      setTrees(filtered);
     };
     const debounce = setTimeout(search, 300);
     return () => clearTimeout(debounce);

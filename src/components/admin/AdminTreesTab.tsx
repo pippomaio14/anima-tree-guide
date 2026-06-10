@@ -12,7 +12,7 @@ interface AdminTreesTabProps {
 }
 
 const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
-  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
+  const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", adopter_email: "", adopter_phone: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
@@ -47,6 +47,8 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
       headers.forEach((h, i) => {
         if (h.includes("numero") || h === "number") row.tree_number = vals[i] || "";
         else if (h.includes("adottante") || h.includes("adopter")) row.adopter_name = vals[i] || "";
+        else if (h.includes("email") || h.includes("mail")) row.adopter_email = vals[i] || null;
+        else if (h.includes("telefono") || h.includes("phone") || h.includes("tel")) row.adopter_phone = vals[i] || null;
         else if (h.includes("dedicat") && !h.includes("messag")) row.dedicated_to = vals[i] || null;
         else if (h.includes("dedica") || h.includes("messag")) row.dedication_message = vals[i] || null;
         else if (h.includes("periodo") || h.includes("period")) row.adoption_period = vals[i] || null;
@@ -64,7 +66,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     const payload = { ...newTree, latitude: newTree.latitude ? parseFloat(newTree.latitude) : null, longitude: newTree.longitude ? parseFloat(newTree.longitude) : null };
     const { error } = await supabase.from("adopted_trees").insert([payload]);
     if (error) toast.error(error.message);
-    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" }); onReload(); }
+    else { toast.success("Albero aggiunto!"); setNewTree({ tree_number: "", adopter_name: "", adopter_email: "", adopter_phone: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" }); onReload(); }
   };
 
   const deleteTree = async (id: string) => {
@@ -75,7 +77,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
 
   const startEdit = (tree: any) => {
     setEditingId(tree.id);
-    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "", latitude: tree.latitude?.toString() || "", longitude: tree.longitude?.toString() || "" });
+    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, adopter_email: tree.adopter_email || "", adopter_phone: tree.adopter_phone || "", dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "", latitude: tree.latitude?.toString() || "", longitude: tree.longitude?.toString() || "" });
   };
 
   const saveEdit = async () => {
@@ -96,7 +98,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h3 className="font-semibold flex items-center gap-2"><Upload className="w-4 h-4" /> Importa CSV</h3>
-        <p className="text-xs text-muted-foreground">Colonne: numero, adottante, dedicato_a, dedica, periodo</p>
+        <p className="text-xs text-muted-foreground">Colonne: numero, adottante, email, telefono, dedicato_a, dedica, periodo</p>
         <Input type="file" accept=".csv,.txt" onChange={handleCSVImport} />
       </div>
 
@@ -107,6 +109,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
           <Input placeholder="Adottante" value={newTree.adopter_name} onChange={(e) => setNewTree({ ...newTree, adopter_name: e.target.value })} />
           <Input placeholder="Dedicato a" value={newTree.dedicated_to} onChange={(e) => setNewTree({ ...newTree, dedicated_to: e.target.value })} />
           <Input placeholder="Specie" value={newTree.tree_species} onChange={(e) => setNewTree({ ...newTree, tree_species: e.target.value })} />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Input placeholder="Email adottante" type="email" value={newTree.adopter_email} onChange={(e) => setNewTree({ ...newTree, adopter_email: e.target.value })} />
+          <Input placeholder="Telefono adottante" type="tel" value={newTree.adopter_phone} onChange={(e) => setNewTree({ ...newTree, adopter_phone: e.target.value })} />
         </div>
         <Input placeholder="Dedica" value={newTree.dedication_message} onChange={(e) => setNewTree({ ...newTree, dedication_message: e.target.value })} />
         <Input placeholder="Periodo adozione" value={newTree.adoption_period} onChange={(e) => setNewTree({ ...newTree, adoption_period: e.target.value })} />
@@ -133,6 +139,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
                   <Input placeholder="Dedicato a" value={editData.dedicated_to} onChange={(e) => setEditData({ ...editData, dedicated_to: e.target.value })} />
                   <Input placeholder="Specie" value={editData.tree_species} onChange={(e) => setEditData({ ...editData, tree_species: e.target.value })} />
                 </div>
+                 <div className="grid grid-cols-2 gap-2">
+                   <Input placeholder="Email adottante" type="email" value={editData.adopter_email} onChange={(e) => setEditData({ ...editData, adopter_email: e.target.value })} />
+                   <Input placeholder="Telefono adottante" type="tel" value={editData.adopter_phone} onChange={(e) => setEditData({ ...editData, adopter_phone: e.target.value })} />
+                 </div>
                  <Input placeholder="Dedica" value={editData.dedication_message} onChange={(e) => setEditData({ ...editData, dedication_message: e.target.value })} />
                  <Input placeholder="Periodo" value={editData.adoption_period} onChange={(e) => setEditData({ ...editData, adoption_period: e.target.value })} />
                  <div className="grid grid-cols-2 gap-2">
