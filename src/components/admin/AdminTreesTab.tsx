@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, Plus, Trash2, Pencil, X, Check } from "lucide-react";
+import { Upload, Plus, Trash2, Pencil, X, Check, MapPin, Loader2 } from "lucide-react";
 
 interface AdminTreesTabProps {
   trees: any[];
@@ -15,6 +15,24 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
   const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
+
+  const getCurrentPosition = (target: "new" | "edit") => {
+    if (!navigator.geolocation) { toast.error("Geolocalizzazione non supportata"); return; }
+    setGpsLoading(target);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(7);
+        const lng = pos.coords.longitude.toFixed(7);
+        if (target === "new") setNewTree((p) => ({ ...p, latitude: lat, longitude: lng }));
+        else setEditData((p: any) => ({ ...p, latitude: lat, longitude: lng }));
+        toast.success(`Posizione acquisita (±${Math.round(pos.coords.accuracy)}m)`);
+        setGpsLoading(null);
+      },
+      (err) => { toast.error(`Errore GPS: ${err.message}`); setGpsLoading(null); },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,6 +114,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
           <Input placeholder="Latitudine" type="number" step="any" value={newTree.latitude} onChange={(e) => setNewTree({ ...newTree, latitude: e.target.value })} />
           <Input placeholder="Longitudine" type="number" step="any" value={newTree.longitude} onChange={(e) => setNewTree({ ...newTree, longitude: e.target.value })} />
         </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => getCurrentPosition("new")} disabled={gpsLoading === "new"} className="w-full">
+          {gpsLoading === "new" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+          Usa la mia posizione GPS
+        </Button>
         <Button onClick={addTree} className="gradient-forest text-primary-foreground w-full">Aggiungi Albero</Button>
       </div>
 
@@ -117,6 +139,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
                    <Input placeholder="Latitudine" type="number" step="any" value={editData.latitude} onChange={(e) => setEditData({ ...editData, latitude: e.target.value })} />
                    <Input placeholder="Longitudine" type="number" step="any" value={editData.longitude} onChange={(e) => setEditData({ ...editData, longitude: e.target.value })} />
                  </div>
+                 <Button type="button" variant="outline" size="sm" onClick={() => getCurrentPosition("edit")} disabled={gpsLoading === "edit"} className="w-full">
+                   {gpsLoading === "edit" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+                   Usa la mia posizione GPS
+                 </Button>
                  <div className="flex gap-2">
                   <Button size="sm" onClick={saveEdit} className="flex-1"><Check className="w-3 h-3 mr-1" />Salva</Button>
                   <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="flex-1"><X className="w-3 h-3 mr-1" />Annulla</Button>
