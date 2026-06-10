@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, Plus, Trash2, Pencil, X, Check } from "lucide-react";
+import { Upload, Plus, Trash2, Pencil, X, Check, MapPin, Loader2 } from "lucide-react";
 
 interface AdminTreesTabProps {
   trees: any[];
