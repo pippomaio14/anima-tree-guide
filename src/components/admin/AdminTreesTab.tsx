@@ -114,6 +114,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
           <Input placeholder="Latitudine" type="number" step="any" value={newTree.latitude} onChange={(e) => setNewTree({ ...newTree, latitude: e.target.value })} />
           <Input placeholder="Longitudine" type="number" step="any" value={newTree.longitude} onChange={(e) => setNewTree({ ...newTree, longitude: e.target.value })} />
         </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => getCurrentPosition("new")} disabled={gpsLoading === "new"} className="w-full">
+          {gpsLoading === "new" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+          Usa la mia posizione GPS
+        </Button>
         <Button onClick={addTree} className="gradient-forest text-primary-foreground w-full">Aggiungi Albero</Button>
       </div>
 
