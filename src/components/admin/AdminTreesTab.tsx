@@ -139,6 +139,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
                   <Input placeholder="Dedicato a" value={editData.dedicated_to} onChange={(e) => setEditData({ ...editData, dedicated_to: e.target.value })} />
                   <Input placeholder="Specie" value={editData.tree_species} onChange={(e) => setEditData({ ...editData, tree_species: e.target.value })} />
                 </div>
+                 <div className="grid grid-cols-2 gap-2">
+                   <Input placeholder="Email adottante" type="email" value={editData.adopter_email} onChange={(e) => setEditData({ ...editData, adopter_email: e.target.value })} />
+                   <Input placeholder="Telefono adottante" type="tel" value={editData.adopter_phone} onChange={(e) => setEditData({ ...editData, adopter_phone: e.target.value })} />
+                 </div>
                  <Input placeholder="Dedica" value={editData.dedication_message} onChange={(e) => setEditData({ ...editData, dedication_message: e.target.value })} />
                  <Input placeholder="Periodo" value={editData.adoption_period} onChange={(e) => setEditData({ ...editData, adoption_period: e.target.value })} />
                  <div className="grid grid-cols-2 gap-2">
