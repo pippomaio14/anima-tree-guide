@@ -139,6 +139,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
                    <Input placeholder="Latitudine" type="number" step="any" value={editData.latitude} onChange={(e) => setEditData({ ...editData, latitude: e.target.value })} />
                    <Input placeholder="Longitudine" type="number" step="any" value={editData.longitude} onChange={(e) => setEditData({ ...editData, longitude: e.target.value })} />
                  </div>
+                 <Button type="button" variant="outline" size="sm" onClick={() => getCurrentPosition("edit")} disabled={gpsLoading === "edit"} className="w-full">
+                   {gpsLoading === "edit" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+                   Usa la mia posizione GPS
+                 </Button>
                  <div className="flex gap-2">
                   <Button size="sm" onClick={saveEdit} className="flex-1"><Check className="w-3 h-3 mr-1" />Salva</Button>
                   <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="flex-1"><X className="w-3 h-3 mr-1" />Annulla</Button>
