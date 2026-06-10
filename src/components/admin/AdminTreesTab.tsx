@@ -15,6 +15,24 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
   const [newTree, setNewTree] = useState({ tree_number: "", adopter_name: "", dedicated_to: "", dedication_message: "", adoption_period: "", tree_species: "", latitude: "", longitude: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
+
+  const getCurrentPosition = (target: "new" | "edit") => {
+    if (!navigator.geolocation) { toast.error("Geolocalizzazione non supportata"); return; }
+    setGpsLoading(target);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(7);
+        const lng = pos.coords.longitude.toFixed(7);
+        if (target === "new") setNewTree((p) => ({ ...p, latitude: lat, longitude: lng }));
+        else setEditData((p: any) => ({ ...p, latitude: lat, longitude: lng }));
+        toast.success(`Posizione acquisita (±${Math.round(pos.coords.accuracy)}m)`);
+        setGpsLoading(null);
+      },
+      (err) => { toast.error(`Errore GPS: ${err.message}`); setGpsLoading(null); },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
