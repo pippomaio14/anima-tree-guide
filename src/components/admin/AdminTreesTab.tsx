@@ -75,7 +75,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
 
   const startEdit = (tree: any) => {
     setEditingId(tree.id);
-    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "", latitude: tree.latitude?.toString() || "", longitude: tree.longitude?.toString() || "" });
+    setEditData({ tree_number: tree.tree_number, adopter_name: tree.adopter_name, adopter_email: tree.adopter_email || "", adopter_phone: tree.adopter_phone || "", dedicated_to: tree.dedicated_to || "", dedication_message: tree.dedication_message || "", adoption_period: tree.adoption_period || "", tree_species: tree.tree_species || "", latitude: tree.latitude?.toString() || "", longitude: tree.longitude?.toString() || "" });
   };
 
   const saveEdit = async () => {
