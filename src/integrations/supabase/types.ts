@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       adopted_trees: {
         Row: {
+          adopter_email: string | null
           adopter_name: string
+          adopter_phone: string | null
           adoption_period: string | null
           created_at: string
           dedicated_to: string | null
@@ -31,7 +33,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adopter_email?: string | null
           adopter_name: string
+          adopter_phone?: string | null
           adoption_period?: string | null
           created_at?: string
           dedicated_to?: string | null
@@ -46,7 +50,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adopter_email?: string | null
           adopter_name?: string
+          adopter_phone?: string | null
           adoption_period?: string | null
           created_at?: string
           dedicated_to?: string | null
@@ -521,7 +527,54 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      trees_public: {
+        Row: {
+          adopter_name: string | null
+          adoption_period: string | null
+          created_at: string | null
+          dedicated_to: string | null
+          dedication_message: string | null
+          id: string | null
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          published: boolean | null
+          tree_number: string | null
+          tree_species: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          adopter_name?: string | null
+          adoption_period?: string | null
+          created_at?: string | null
+          dedicated_to?: string | null
+          dedication_message?: string | null
+          id?: string | null
+          image_url?: string | null
+          latitude?: never
+          longitude?: never
+          published?: boolean | null
+          tree_number?: string | null
+          tree_species?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          adopter_name?: string | null
+          adoption_period?: string | null
+          created_at?: string | null
+          dedicated_to?: string | null
+          dedication_message?: string | null
+          id?: string | null
+          image_url?: string | null
+          latitude?: never
+          longitude?: never
+          published?: boolean | null
+          tree_number?: string | null
+          tree_species?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
