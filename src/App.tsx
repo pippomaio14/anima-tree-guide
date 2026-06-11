@@ -22,6 +22,7 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import SplashScreen from "./components/SplashScreen";
 import LegalPage from "./pages/LegalPage";
+import PermissionsRequester from "./components/PermissionsRequester";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SplashScreen />
+      <PermissionsRequester />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
