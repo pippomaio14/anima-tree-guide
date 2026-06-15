@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Upload, Plus, Trash2, Pencil, X, Check, MapPin, Loader2 } from "lucide-react";
+import { Geolocation } from "@capacitor/geolocation";
 
 interface AdminTreesTabProps {
   trees: any[];
@@ -17,21 +18,29 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
   const [editData, setEditData] = useState<any>({});
   const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
 
-  const getCurrentPosition = (target: "new" | "edit") => {
-    if (!navigator.geolocation) { toast.error("Geolocalizzazione non supportata"); return; }
+  const getCurrentPosition = async (target: "new" | "edit") => {
     setGpsLoading(target);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude.toFixed(7);
-        const lng = pos.coords.longitude.toFixed(7);
-        if (target === "new") setNewTree((p) => ({ ...p, latitude: lat, longitude: lng }));
-        else setEditData((p: any) => ({ ...p, latitude: lat, longitude: lng }));
-        toast.success(`Posizione acquisita (±${Math.round(pos.coords.accuracy)}m)`);
-        setGpsLoading(null);
-      },
-      (err) => { toast.error(`Errore GPS: ${err.message}`); setGpsLoading(null); },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
+    try {
+      const perm = await Geolocation.checkPermissions();
+      if (perm.location !== "granted") {
+        const req = await Geolocation.requestPermissions({ permissions: ["location"] });
+        if (req.location !== "granted") {
+          toast.error("Permesso posizione negato");
+          setGpsLoading(null);
+          return;
+        }
+      }
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+      const lat = pos.coords.latitude.toFixed(7);
+      const lng = pos.coords.longitude.toFixed(7);
+      if (target === "new") setNewTree((p) => ({ ...p, latitude: lat, longitude: lng }));
+      else setEditData((p: any) => ({ ...p, latitude: lat, longitude: lng }));
+      toast.success(`Posizione acquisita (±${Math.round(pos.coords.accuracy)}m)`);
+    } catch (err: any) {
+      toast.error(`Errore GPS: ${err?.message || "non disponibile"}`);
+    } finally {
+      setGpsLoading(null);
+    }
   };
 
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {

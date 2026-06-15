@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Geolocation } from "@capacitor/geolocation";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -43,7 +44,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const userMarker = useRef<any>(null);
-  const watchId = useRef<number | null>(null);
+  const watchId = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -75,47 +76,61 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           label: { text: "🌳", fontSize: "24px" },
         });
 
-        if (!navigator.geolocation) {
-          setError("Geolocalizzazione non supportata dal browser");
-          return;
-        }
-
-        watchId.current = navigator.geolocation.watchPosition(
-          (pos) => {
-            const userLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            setUserPos(userLatLng);
-            if (!userMarker.current) {
-              userMarker.current = new window.google.maps.Marker({
-                position: userLatLng,
-                map: mapInstance.current,
-                title: "La tua posizione",
-                icon: {
-                  path: window.google.maps.SymbolPath.CIRCLE,
-                  scale: 10,
-                  fillColor: "#4285F4",
-                  fillOpacity: 1,
-                  strokeColor: "#ffffff",
-                  strokeWeight: 3,
-                },
-              });
-              const bounds = new window.google.maps.LatLngBounds();
-              bounds.extend(treePos);
-              bounds.extend(userLatLng);
-              mapInstance.current.fitBounds(bounds, 80);
-            } else {
-              userMarker.current.setPosition(userLatLng);
+        const startWatch = async () => {
+          try {
+            const perm = await Geolocation.checkPermissions();
+            if (perm.location !== "granted") {
+              const req = await Geolocation.requestPermissions({ permissions: ["location"] });
+              if (req.location !== "granted") {
+                setError("Permesso posizione negato");
+                return;
+              }
             }
-          },
-          (err) => setError(`Posizione non disponibile: ${err.message}`),
-          { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
-        );
+            watchId.current = await Geolocation.watchPosition(
+              { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
+              (pos, err) => {
+                if (err) {
+                  setError(`Posizione non disponibile: ${err.message}`);
+                  return;
+                }
+                if (!pos) return;
+                const userLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                setUserPos(userLatLng);
+                if (!userMarker.current) {
+                  userMarker.current = new window.google.maps.Marker({
+                    position: userLatLng,
+                    map: mapInstance.current,
+                    title: "La tua posizione",
+                    icon: {
+                      path: window.google.maps.SymbolPath.CIRCLE,
+                      scale: 10,
+                      fillColor: "#4285F4",
+                      fillOpacity: 1,
+                      strokeColor: "#ffffff",
+                      strokeWeight: 3,
+                    },
+                  });
+                  const bounds = new window.google.maps.LatLngBounds();
+                  bounds.extend(treePos);
+                  bounds.extend(userLatLng);
+                  mapInstance.current.fitBounds(bounds, 80);
+                } else {
+                  userMarker.current.setPosition(userLatLng);
+                }
+              }
+            );
+          } catch (e: any) {
+            setError(`Geolocalizzazione non disponibile: ${e?.message || ""}`);
+          }
+        };
+        startWatch();
       })
       .catch((e) => setError(e.message));
 
     return () => {
       cancelled = true;
       if (watchId.current !== null) {
-        navigator.geolocation.clearWatch(watchId.current);
+        Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
         watchId.current = null;
       }
       userMarker.current = null;

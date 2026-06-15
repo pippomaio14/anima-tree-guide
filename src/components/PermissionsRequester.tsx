@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Geolocation } from "@capacitor/geolocation";
 
 const STORAGE_KEY = "permissions_requested_v1";
 
@@ -9,35 +10,24 @@ const PermissionsRequester = () => {
     if (localStorage.getItem(STORAGE_KEY)) return;
 
     const run = async () => {
-      // Geolocation
-      if ("geolocation" in navigator) {
-        try {
-          let state: PermissionState | "unsupported" = "unsupported";
-          if ((navigator as any).permissions?.query) {
-            try {
-              const status = await (navigator as any).permissions.query({ name: "geolocation" as PermissionName });
-              state = status.state;
-            } catch {
-              // ignored
-            }
+      // Geolocation via Capacitor (works on web + native)
+      try {
+        const current = await Geolocation.checkPermissions();
+        if (current.location !== "granted" && current.location !== "denied") {
+          const res = await Geolocation.requestPermissions({ permissions: ["location"] });
+          if (res.location === "granted") {
+            toast.success("Permesso posizione concesso");
+          } else if (res.location === "denied") {
+            toast.message("Posizione negata", {
+              description: "Potrai abilitarla dalle impostazioni del dispositivo.",
+            });
           }
-          if (state !== "granted" && state !== "denied") {
-            navigator.geolocation.getCurrentPosition(
-              () => toast.success("Permesso posizione concesso"),
-              (err) => {
-                if (err.code === err.PERMISSION_DENIED) {
-                  toast.message("Posizione negata", { description: "Potrai abilitarla dalle impostazioni del browser." });
-                }
-              },
-              { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
-            );
-          }
-        } catch {
-          // ignored
         }
+      } catch {
+        // ignored
       }
 
-      // Notifications
+      // Notifications (Web API)
       if ("Notification" in window) {
         try {
           if (Notification.permission === "default") {
@@ -52,7 +42,6 @@ const PermissionsRequester = () => {
       localStorage.setItem(STORAGE_KEY, "1");
     };
 
-    // Slight delay so it doesn't fire during splash
     const t = setTimeout(run, 2200);
     return () => clearTimeout(t);
   }, []);
