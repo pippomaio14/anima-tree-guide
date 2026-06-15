@@ -44,7 +44,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const userMarker = useRef<any>(null);
-  const watchId = useRef<number | null>(null);
+  const watchId = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
 
