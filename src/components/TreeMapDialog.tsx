@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Geolocation } from "@capacitor/geolocation";
 
 interface TreeMapDialogProps {
   open: boolean;
