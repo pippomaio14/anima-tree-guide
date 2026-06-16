@@ -272,7 +272,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             <capacitor-google-map ref={mapRef as any} className="absolute inset-0 block h-full w-full" />
           ) : (
             <div ref={mapRef as any} className="absolute inset-0" />
-          }
+          )}
           {error && (
             <div className="absolute bottom-4 left-4 right-4 bg-destructive/90 text-destructive-foreground p-3 rounded-lg flex items-start gap-2 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
