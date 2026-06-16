@@ -208,7 +208,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           console.warn("Map loading failed, using embed fallback", e);
           setFallbackEmbed(true);
           await startWatch();
-          if (e?.message) setError(e.message);
         }
       }
     };
