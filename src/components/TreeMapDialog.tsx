@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
+import { GoogleMap, LatLngBounds, MapType } from "@capacitor/google-maps";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -19,20 +21,24 @@ declare global {
   interface Window {
     google: any;
     __initTreeMap?: () => void;
+    gm_authFailure?: () => void;
   }
 }
 
-const BROWSER_KEY = "AIzaSyCLUtn_ue87Sn3D_VdpDQO6RaeH4tgzLIc";
-const TRACKING_ID = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_TRACKING_ID;
+const GOOGLE_MAPS_KEY = "AIzaSyCLUtn_ue87Sn3D_VdpDQO6RaeH4tgzLIc";
+
+const getEmbedUrl = (lat: number, lng: number) =>
+  `https://www.google.com/maps?q=${lat},${lng}&t=k&z=19&output=embed`;
 
 let mapsLoaderPromise: Promise<void> | null = null;
 const loadGoogleMaps = (): Promise<void> => {
   if (mapsLoaderPromise) return mapsLoaderPromise;
   mapsLoaderPromise = new Promise((resolve, reject) => {
     if (window.google?.maps) return resolve();
+    window.gm_authFailure = () => reject(new Error("Chiave Google Maps non autorizzata per questa app"));
     window.__initTreeMap = () => resolve();
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${BROWSER_KEY}&loading=async&callback=__initTreeMap&channel=${TRACKING_ID}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&loading=async&callback=__initTreeMap`;
     script.async = true;
     script.onerror = () => reject(new Error("Impossibile caricare Google Maps"));
     document.head.appendChild(script);
@@ -41,91 +47,173 @@ const loadGoogleMaps = (): Promise<void> => {
 };
 
 const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<HTMLElement | null>(null);
   const mapInstance = useRef<any>(null);
+  const nativeMap = useRef<GoogleMap | null>(null);
+  const nativeUserMarkerId = useRef<string | null>(null);
+  const nativeBoundsFit = useRef(false);
   const userMarker = useRef<any>(null);
   const watchId = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [fallbackEmbed, setFallbackEmbed] = useState(false);
 
   useEffect(() => {
     if (!open || !tree) return;
     setError(null);
+    setFallbackEmbed(false);
+    nativeBoundsFit.current = false;
 
     let cancelled = false;
+    const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    loadGoogleMaps()
-      .then(() => {
-        if (cancelled || !mapRef.current) return;
-        const treePos = { lat: tree.latitude, lng: tree.longitude };
+    const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
+      if (!nativeMap.current || nativeBoundsFit.current) return;
+      nativeBoundsFit.current = true;
+      const bounds = new LatLngBounds({
+        southwest: {
+          lat: Math.min(treePos.lat, userLatLng.lat),
+          lng: Math.min(treePos.lng, userLatLng.lng),
+        },
+        northeast: {
+          lat: Math.max(treePos.lat, userLatLng.lat),
+          lng: Math.max(treePos.lng, userLatLng.lng),
+        },
+        center: {
+          lat: (treePos.lat + userLatLng.lat) / 2,
+          lng: (treePos.lng + userLatLng.lng) / 2,
+        },
+      });
+      await nativeMap.current.fitBounds(bounds, 80);
+    };
 
-        mapInstance.current = new window.google.maps.Map(mapRef.current, {
+    const startWatch = async (onPosition?: (pos: { lat: number; lng: number }) => void | Promise<void>) => {
+      try {
+        const perm = await Geolocation.checkPermissions();
+        if (perm.location !== "granted") {
+          const req = await Geolocation.requestPermissions({ permissions: ["location"] });
+          if (req.location !== "granted") {
+            setError("Permesso posizione negato");
+            return;
+          }
+        }
+        watchId.current = await Geolocation.watchPosition(
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
+          (pos, err) => {
+            if (err) {
+              setError(`Posizione non disponibile: ${err.message}`);
+              return;
+            }
+            if (!pos) return;
+            const userLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setUserPos(userLatLng);
+            if (onPosition) void Promise.resolve(onPosition(userLatLng)).catch(() => {});
+          }
+        );
+      } catch (e: any) {
+        setError(`Geolocalizzazione non disponibile: ${e?.message || ""}`);
+      }
+    };
+
+    const initNativeMap = async () => {
+      if (!mapRef.current) return;
+      const createdMap = await GoogleMap.create({
+        id: "tree-map-dialog",
+        element: mapRef.current,
+        apiKey: GOOGLE_MAPS_KEY,
+        forceCreate: true,
+        config: {
           center: treePos,
           zoom: 19,
-          mapTypeId: "satellite",
-          tilt: 0,
-          streetViewControl: false,
-          fullscreenControl: false,
-          mapTypeControl: false,
+        },
+      });
+      nativeMap.current = createdMap;
+      await createdMap.setMapType(MapType.Satellite);
+      await createdMap.addMarker({
+        coordinate: treePos,
+        title: `Albero #${tree.tree_number}`,
+        snippet: tree.adopter_name,
+        tintColor: { r: 22, g: 135, b: 96, a: 255 },
+      });
+      await createdMap.enableCurrentLocation(true).catch(() => {});
+      await startWatch(async (userLatLng) => {
+        if (!nativeMap.current) return;
+        if (nativeUserMarkerId.current) {
+          await nativeMap.current.removeMarker(nativeUserMarkerId.current).catch(() => {});
+        }
+        nativeUserMarkerId.current = await nativeMap.current.addMarker({
+          coordinate: userLatLng,
+          title: "La tua posizione",
+          tintColor: { r: 66, g: 133, b: 244, a: 255 },
         });
+        await fitNativeBounds(userLatLng).catch(() => {});
+      });
+    };
 
-        new window.google.maps.Marker({
-          position: treePos,
-          map: mapInstance.current,
-          title: `Albero #${tree.tree_number}`,
-          label: { text: "🌳", fontSize: "24px" },
-        });
+    const initWebMap = async () => {
+      await loadGoogleMaps();
+      if (cancelled || !mapRef.current) return;
 
-        const startWatch = async () => {
-          try {
-            const perm = await Geolocation.checkPermissions();
-            if (perm.location !== "granted") {
-              const req = await Geolocation.requestPermissions({ permissions: ["location"] });
-              if (req.location !== "granted") {
-                setError("Permesso posizione negato");
-                return;
-              }
-            }
-            watchId.current = await Geolocation.watchPosition(
-              { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
-              (pos, err) => {
-                if (err) {
-                  setError(`Posizione non disponibile: ${err.message}`);
-                  return;
-                }
-                if (!pos) return;
-                const userLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                setUserPos(userLatLng);
-                if (!userMarker.current) {
-                  userMarker.current = new window.google.maps.Marker({
-                    position: userLatLng,
-                    map: mapInstance.current,
-                    title: "La tua posizione",
-                    icon: {
-                      path: window.google.maps.SymbolPath.CIRCLE,
-                      scale: 10,
-                      fillColor: "#4285F4",
-                      fillOpacity: 1,
-                      strokeColor: "#ffffff",
-                      strokeWeight: 3,
-                    },
-                  });
-                  const bounds = new window.google.maps.LatLngBounds();
-                  bounds.extend(treePos);
-                  bounds.extend(userLatLng);
-                  mapInstance.current.fitBounds(bounds, 80);
-                } else {
-                  userMarker.current.setPosition(userLatLng);
-                }
-              }
-            );
-          } catch (e: any) {
-            setError(`Geolocalizzazione non disponibile: ${e?.message || ""}`);
-          }
-        };
-        startWatch();
-      })
-      .catch((e) => setError(e.message));
+      mapInstance.current = new window.google.maps.Map(mapRef.current, {
+        center: treePos,
+        zoom: 19,
+        mapTypeId: "satellite",
+        tilt: 0,
+        streetViewControl: false,
+        fullscreenControl: false,
+        mapTypeControl: false,
+      });
+
+      new window.google.maps.Marker({
+        position: treePos,
+        map: mapInstance.current,
+        title: `Albero #${tree.tree_number}`,
+        label: { text: "🌳", fontSize: "24px" },
+      });
+
+      await startWatch((userLatLng) => {
+        if (!userMarker.current) {
+          userMarker.current = new window.google.maps.Marker({
+            position: userLatLng,
+            map: mapInstance.current,
+            title: "La tua posizione",
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#4285F4",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3,
+            },
+          });
+          const bounds = new window.google.maps.LatLngBounds();
+          bounds.extend(treePos);
+          bounds.extend(userLatLng);
+          mapInstance.current.fitBounds(bounds, 80);
+        } else {
+          userMarker.current.setPosition(userLatLng);
+        }
+      });
+    };
+
+    const init = async () => {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await initNativeMap();
+        } else {
+          await initWebMap();
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          console.warn("Map loading failed, using embed fallback", e);
+          setFallbackEmbed(true);
+          await startWatch();
+          if (e?.message) setError(e.message);
+        }
+      }
+    };
+
+    init();
 
     return () => {
       cancelled = true;
@@ -133,6 +221,11 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
         watchId.current = null;
       }
+      if (nativeMap.current) {
+        nativeMap.current.destroy().catch(() => {});
+        nativeMap.current = null;
+      }
+      nativeUserMarkerId.current = null;
       userMarker.current = null;
       mapInstance.current = null;
     };
@@ -150,6 +243,8 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     return Math.round(2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   })();
 
+  const showNativeMap = Capacitor.isNativePlatform() && !fallbackEmbed;
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
@@ -165,7 +260,19 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           </DialogTitle>
         </DialogHeader>
         <div className="relative flex-1 bg-muted">
-          <div ref={mapRef} className="absolute inset-0" />
+          {fallbackEmbed && tree ? (
+            <iframe
+              title={`Mappa albero ${tree.tree_number}`}
+              src={getEmbedUrl(tree.latitude, tree.longitude)}
+              className="absolute inset-0 h-full w-full border-0"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          ) : showNativeMap ? (
+            <capacitor-google-map ref={mapRef as any} className="absolute inset-0 block h-full w-full" />
+          ) : (
+            <div ref={mapRef as any} className="absolute inset-0" />
+          }
           {error && (
             <div className="absolute bottom-4 left-4 right-4 bg-destructive/90 text-destructive-foreground p-3 rounded-lg flex items-start gap-2 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
