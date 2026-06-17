@@ -16,11 +16,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  define: {
-    // ✅ Include esplicitamente le variabili d'ambiente
-    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL),
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY),
-  },
   build: {
     outDir: "dist",
     rollupOptions: {
@@ -28,8 +23,6 @@ export default defineConfig(({ mode }) => ({
         '@capacitor/core',
         '@capacitor/geolocation',
         '@capacitor/google-maps',
-        'lovable-tagger',
-        'lovable-auth',
       ],
       output: {
         format: 'esm',
@@ -42,8 +35,6 @@ export default defineConfig(({ mode }) => ({
       '@capacitor/core',
       '@capacitor/geolocation',
       '@capacitor/google-maps',
-      'lovable-tagger',
-      'lovable-auth',
     ],
   },
 }));
