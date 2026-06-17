@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Upload, Plus, Trash2, Pencil, X, Check, MapPin, Loader2 } from "lucide-react";
-import { Geolocation } from "@capacitor/geolocation";
 
 interface AdminTreesTabProps {
   trees: any[];
@@ -18,9 +17,28 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
   const [editData, setEditData] = useState<any>({});
   const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
 
+  // ✅ CARICA IL PLUGIN DINAMICAMENTE
+  const getGeolocation = async () => {
+    try {
+      const module = await import('@capacitor/geolocation');
+      return module.Geolocation;
+    } catch (e) {
+      console.warn('⚠️ Plugin geolocation non disponibile:', e);
+      return null;
+    }
+  };
+
   const getCurrentPosition = async (target: "new" | "edit") => {
     setGpsLoading(target);
     try {
+      const Geolocation = await getGeolocation();
+      
+      if (!Geolocation) {
+        toast.error("Geolocalizzazione non disponibile su questa piattaforma");
+        setGpsLoading(null);
+        return;
+      }
+
       const perm = await Geolocation.checkPermissions();
       if (perm.location !== "granted") {
         const req = await Geolocation.requestPermissions({ permissions: ["location"] });
@@ -185,6 +203,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         ))}
       </div>
     </div>
+  );
+};
+
+export default AdminTreesTab;
   );
 };
 
