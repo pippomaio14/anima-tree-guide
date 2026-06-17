@@ -57,15 +57,19 @@ const isNativePlatform = (): boolean => {
   }
 };
 
-// ✅ CARICAMENTO DINAMICO CON GESTIONE ERRORI
+// ✅ CARICAMENTO DINAMICO SOLO IN AMBIENTE NATIVO
 const loadGeolocation = async () => {
+  // SE NON SIAMO IN AMBIENTE NATIVO, NON CARICARE IL PLUGIN
   if (!isNativePlatform()) {
     console.log('🌐 Web: uso navigator.geolocation');
     return null;
   }
   
   try {
+    console.log('📱 Caricamento plugin geolocation nativo...');
+    // Import dinamico con try-catch
     const module = await import('@capacitor/geolocation');
+    console.log('✅ Plugin geolocation caricato');
     return module.Geolocation;
   } catch (e) {
     console.warn('⚠️ Geolocation plugin non disponibile:', e);
@@ -140,7 +144,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       if (!isNative) {
         console.log('🌐 Web: avvio watch con navigator.geolocation');
         if (navigator.geolocation) {
-          // Pulisci vecchio watch se esiste
           if (webWatchId.current !== null) {
             navigator.geolocation.clearWatch(webWatchId.current);
             webWatchId.current = null;
@@ -166,7 +169,23 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       try {
         const Geolocation = await loadGeolocation();
         if (!Geolocation) {
-          throw new Error('Plugin geolocalizzazione non disponibile');
+          console.warn('Plugin geolocalizzazione non disponibile, uso fallback web');
+          // Fallback a navigator.geolocation se il plugin non è disponibile
+          if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+              (position) => {
+                const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
+                setUserPos(userLatLng);
+                if (onPosition) void Promise.resolve(onPosition(userLatLng)).catch(() => {});
+              },
+              (err) => {
+                console.error('Errore geolocalizzazione fallback:', err);
+                setError('Impossibile ottenere la posizione. Verifica che il GPS sia attivo.');
+              },
+              { enableHighAccuracy: true }
+            );
+          }
+          return;
         }
 
         const perm = await Geolocation.checkPermissions();
@@ -197,43 +216,28 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           }
         );
       } catch (e: any) {
-        setError(`Geolocalizzazione non disponibile: ${e?.message || ""}`);
+        console.error('Errore geolocalizzazione nativa:', e);
+        // Fallback a navigator.geolocation
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition(
+            (position) => {
+              const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
+              setUserPos(userLatLng);
+              if (onPosition) void Promise.resolve(onPosition(userLatLng)).catch(() => {});
+            },
+            (err) => {
+              console.error('Errore geolocalizzazione fallback:', err);
+              setError('Impossibile ottenere la posizione. Verifica che il GPS sia attivo.');
+            },
+            { enableHighAccuracy: true }
+          );
+        } else {
+          setError(`Geolocalizzazione non disponibile: ${e?.message || ""}`);
+        }
       }
     }, [isNative]);
 
-    // ✅ FITNATIVEBOUNDS CON CONTROLLI
-    const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
-      if (!nativeMap.current || nativeBoundsFit.current) return;
-      nativeBoundsFit.current = true;
-
-      try {
-        const mapsNative = await loadGoogleMapsNative();
-        if (!mapsNative) {
-          console.warn('Google Maps native non disponibile per fitBounds');
-          return;
-        }
-        const { LatLngBounds } = mapsNative;
-        const bounds = new LatLngBounds({
-          southwest: {
-            lat: Math.min(treePos.lat, userLatLng.lat),
-            lng: Math.min(treePos.lng, userLatLng.lng),
-          },
-          northeast: {
-            lat: Math.max(treePos.lat, userLatLng.lat),
-            lng: Math.max(treePos.lng, userLatLng.lng),
-          },
-          center: {
-            lat: (treePos.lat + userLatLng.lat) / 2,
-            lng: (treePos.lng + userLatLng.lng) / 2,
-          },
-        });
-        await nativeMap.current.fitBounds(bounds, 80);
-      } catch (e) {
-        console.warn('Errore fitNativeBounds:', e);
-      }
-    };
-
-    // ✅ INITNATIVEMAP CON CONTROLLI
+    // ✅ INIT NATIVE MAP
     const initNativeMap = async () => {
       if (!mapRef.current) {
         console.error('mapRef.current è nullo');
@@ -278,7 +282,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             title: "La tua posizione",
             tintColor: { r: 66, g: 133, b: 244, a: 255 },
           });
-          await fitNativeBounds(userLatLng).catch(() => {});
+          // Fit bounds solo se necessario
         });
       } catch (error) {
         console.error("Errore initNativeMap:", error);
@@ -286,7 +290,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ INITWEBMAP
+    // ✅ INIT WEB MAP
     const initWebMap = async () => {
       try {
         await loadGoogleMaps();
@@ -338,7 +342,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ INIT CON GESTIONE ERRORI
+    // ✅ INIT
     const init = async () => {
       try {
         console.log(`🚀 Avvio mappa su: ${isNative ? 'Android (nativo)' : 'Web'}`);
@@ -351,35 +355,18 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         if (!cancelled) {
           console.warn("Map loading failed, using embed fallback", e);
           setFallbackEmbed(true);
-          // Tentiamo la posizione per il fallback
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                setUserPos({
-                  lat: pos.coords.latitude,
-                  lng: pos.coords.longitude
-                });
-              },
-              () => {}
-            );
-          }
         }
       }
     };
 
     init();
 
-    // ✅ CLEANUP COMPLETO
     return () => {
       cancelled = true;
-      
-      // Pulisci watch web
       if (webWatchId.current !== null) {
         navigator.geolocation.clearWatch(webWatchId.current);
         webWatchId.current = null;
       }
-      
-      // Pulisci watch nativo
       if (watchId.current !== null) {
         loadGeolocation().then(Geolocation => {
           if (Geolocation) {
@@ -388,21 +375,16 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         }).catch(() => {});
         watchId.current = null;
       }
-      
-      // Distruggi mappa nativa
       if (nativeMap.current) {
         nativeMap.current.destroy().catch(() => {});
         nativeMap.current = null;
       }
-      
-      // Pulisci riferimenti
       nativeUserMarkerId.current = null;
       userMarker.current = null;
       mapInstance.current = null;
     };
   }, [open, tree, isNative, pluginsReady, startWatch]);
 
-  // ✅ CALCOLO DISTANZA
   const distance = (() => {
     if (!userPos || !tree) return null;
     const R = 6371000;
@@ -417,7 +399,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
 
   const showNativeMap = isNative && !fallbackEmbed;
 
-  // ✅ RENDER
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
