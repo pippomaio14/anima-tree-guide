@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+console.log('🔍 [useAuth] Verifica connessione Supabase:');
+console.log('  - supabase:', supabase ? '✅ Caricato' : '❌ Non caricato');
+console.log('  - supabase.auth:', supabase.auth ? '✅ Disponibile' : '❌ Non disponibile');
 import type { User, Session } from "@supabase/supabase-js";
 
 // ✅ FUNZIONE DI LOG PER DEBUG
