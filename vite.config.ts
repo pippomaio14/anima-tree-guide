@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: "dist",
+      minify: false, // ← AGGIUNGI QUESTO per debug
+      sourcemap: true, // ← AGGIUNGI QUESTO per debug
     rollupOptions: {
       external: [],
       output: {
