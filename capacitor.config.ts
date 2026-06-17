@@ -5,9 +5,6 @@ const config: CapacitorConfig = {
   appName: "Anima Tree Guide",
   webDir: "dist",
   
-  // RIMUOVI COMPLETAMENTE LA SEZIONE "server" - NON DEVE ESSERCI!
-  // Non usare url remoto, altrimenti l'app va su Lovable
-  
   plugins: {
     GoogleMaps: {
       apiKey: 'AIzaSyCLUtn_ue87Sn3D_VdpDQO6RaeH4tgzLIc',
@@ -21,7 +18,13 @@ const config: CapacitorConfig = {
   
   android: {
     allowMixedContent: true,
-    webContentsDebuggingEnabled: true, // Metti true per debug
+    webContentsDebuggingEnabled: true, // IMPORTANTE: TRUE
+  },
+  
+  // ✅ AGGIUNGI QUESTA SEZIONE PER DEBUG
+  server: {
+    androidScheme: "https",
+    cleartext: true,
   },
 };
 
