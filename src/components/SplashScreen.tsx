@@ -1,76 +1,58 @@
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
-// ✅ FUNZIONE DI LOG PER DEBUG
-const bootLog = (message: string, type: 'info' | 'warn' | 'error' = 'info') => {
-  try {
-    const logEl = document.getElementById('boot-log');
-    if (logEl) {
-      const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '✅';
-      logEl.innerHTML += `\n${prefix} [SplashScreen] ${message}`;
-      logEl.scrollTop = logEl.scrollHeight;
-    }
-    console.log(`[SplashScreen] ${message}`);
-  } catch (e) {
-    // Ignora errori di log
-  }
-};
-
+// ✅ VERSIONE SEMPLIFICATA DI SPLASHSCREEN - SENZA FRAMER-MOTION
 const SplashScreen = () => {
-  bootLog('Componente montato');
-  
   const [visible, setVisible] = useState(true);
-  bootLog(`State visible: ${visible}`);
 
   useEffect(() => {
-    bootLog('useEffect avviato');
-    
-    // Imposta un timeout per nascondere lo splash
-    const t = setTimeout(() => {
-      bootLog('Timeout scaduto - nascondo splash');
+    // Nascondi lo splash dopo 1.5 secondi
+    const timer = setTimeout(() => {
       setVisible(false);
-    }, 1800);
-    
-    bootLog('Timeout impostato');
-    
-    return () => {
-      bootLog('Cleanup useEffect - cancello timeout');
-      clearTimeout(t);
-    };
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  bootLog('Preparazione render JSX');
-  
+  if (!visible) return null;
+
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
-        >
-          <motion.img
-            src="/logo.png"
-            alt="Parco Bosco Anima Mundi"
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-64 max-w-[70vw] h-auto"
-            onError={(e) => {
-              bootLog('❌ ERRORE: Immagine logo non caricata!', 'error');
-              console.error('Errore caricamento logo:', e);
-            }}
-            onLoad={() => {
-              bootLog('✅ Logo caricato con successo');
-            }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div 
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ffffff',
+        transition: 'opacity 0.6s ease-out',
+        opacity: visible ? 1 : 0
+      }}
+    >
+      <img 
+        src="/logo.png" 
+        alt="Parco Bosco Anima Mundi"
+        style={{
+          width: '256px',
+          maxWidth: '70vw',
+          height: 'auto'
+        }}
+        onError={(e) => {
+          console.error('❌ Errore caricamento logo:', e);
+          // Se l'immagine non carica, mostra un testo
+          const target = e.target as HTMLImageElement;
+          target.style.display = 'none';
+          const parent = target.parentElement;
+          if (parent) {
+            const text = document.createElement('div');
+            text.style.cssText = 'font-size: 24px; font-weight: bold; color: #166534; text-align: center;';
+            text.textContent = '🌳 Parco Bosco Anima Mundi';
+            parent.appendChild(text);
+          }
+        }}
+      />
+    </div>
   );
 };
-
-bootLog('SplashScreen esportato');
 
 export default SplashScreen;
