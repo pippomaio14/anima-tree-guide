@@ -17,17 +17,17 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Disabilita le funzionalità di Lovable in produzione
     __LOVABLE_DISABLED__: mode === 'production' ? 'true' : 'false',
     'process.env.VITE_USE_LOVABLE_AUTH': JSON.stringify('false'),
   },
   build: {
+    // 👇 AGGIUNGI QUESTA RIGA - È FONDAMENTALE!
+    outDir: "dist",
     rollupOptions: {
       external: [
         '@capacitor/core',
         '@capacitor/geolocation',
         '@capacitor/google-maps',
-        // Escludi Lovable
         'lovable-tagger',
         'lovable-auth',
       ],
