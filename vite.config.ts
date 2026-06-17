@@ -14,6 +14,10 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // 👇 AGGIUNGI QUESTA RIGA: Reindirizza i moduli Capacitor allo shim
+      '@capacitor/core': path.resolve(__dirname, 'src/capacitor-shims.ts'),
+      '@capacitor/geolocation': path.resolve(__dirname, 'src/capacitor-shims.ts'),
+      '@capacitor/google-maps': path.resolve(__dirname, 'src/capacitor-shims.ts'),
     },
   },
   define: {
@@ -21,16 +25,9 @@ export default defineConfig(({ mode }) => ({
     'process.env.VITE_USE_LOVABLE_AUTH': JSON.stringify('false'),
   },
   build: {
-    // 👇 AGGIUNGI QUESTA RIGA - È FONDAMENTALE!
     outDir: "dist",
     rollupOptions: {
-      external: [
-        '@capacitor/core',
-        '@capacitor/geolocation',
-        '@capacitor/google-maps',
-        'lovable-tagger',
-        'lovable-auth',
-      ],
+      external: [],
       output: {
         format: 'esm',
         inlineDynamicImports: false,
@@ -38,12 +35,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    exclude: [
-      '@capacitor/core',
-      '@capacitor/geolocation',
-      '@capacitor/google-maps',
-      'lovable-tagger',
-      'lovable-auth',
-    ],
+    exclude: [],
   },
 }));
