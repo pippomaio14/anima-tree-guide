@@ -1,167 +1,81 @@
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
-import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import ProfilePage from "./pages/ProfilePage";
+import TreeSearchPage from "./pages/TreeSearchPage";
+import EventsPage from "./pages/EventsPage";
+import ArticlesPage from "./pages/ArticlesPage";
+import ParkInfoPage from "./pages/ParkInfoPage";
+import VolunteersPage from "./pages/VolunteersPage";
+import ClassifyPage from "./pages/ClassifyPage";
+import GamesPage from "./pages/GamesPage";
+import QuizPage from "./pages/QuizPage";
+import ChallengePage from "./pages/ChallengePage";
+import TreeGuessPage from "./pages/TreeGuessPage";
+import AdminPage from "./pages/AdminPage";
+import NotFound from "./pages/NotFound";
+import SplashScreen from "./components/SplashScreen";
+import LegalPage from "./pages/LegalPage";
+import PermissionsRequester from "./components/PermissionsRequester";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// ✅ COMPONENTE SPLASHSCREEN SICURO - SENZA FRAMER-MOTION
-const SafeSplashScreen = ({ onComplete }: { onComplete: () => void }) => {
-  const [fadeOut, setFadeOut] = useState(false);
+const queryClient = new QueryClient();
 
-  useEffect(() => {
-    // Dopo 1.5 secondi, avvia la dissolvenza
-    const fadeTimer = setTimeout(() => {
-      setFadeOut(true);
-    }, 1500);
-
-    // Dopo 2 secondi, completa
-    const hideTimer = setTimeout(() => {
-      onComplete();
-    }, 2000);
-
-    return () => {
-      clearTimeout(fadeTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [onComplete]);
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#ffffff',
-        opacity: fadeOut ? 0 : 1,
-        transition: 'opacity 0.5s ease-out',
-        pointerEvents: 'none', // Permette di cliccare attraverso
-      }}
-    >
-      <img
-        src="/logo.png"
-        alt="Parco Bosco Anima Mundi"
-        style={{
-          width: '256px',
-          maxWidth: '70vw',
-          height: 'auto',
-          transform: fadeOut ? 'scale(0.95)' : 'scale(1)',
-          transition: 'transform 0.5s ease-out',
-        }}
-        onError={(e) => {
-          console.warn('Logo non caricato, uso testo fallback');
-          const target = e.target as HTMLImageElement;
-          target.style.display = 'none';
-          const parent = target.parentElement;
-          if (parent) {
-            const text = document.createElement('div');
-            text.style.cssText = 'font-size: 24px; font-weight: bold; color: #166534; text-align: center; padding: 20px;';
-            text.textContent = '🌳 Parco Bosco Anima Mundi';
-            parent.appendChild(text);
-          }
-        }}
-      />
-    </div>
-  );
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
 };
 
-// ✅ COMPONENTE PRINCIPALE DELL'APP
-function App() {
-  const [showSplash, setShowSplash] = useState(true);
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/" replace />;
+  return <>{children}</>;
+};
+
+const App = () => {
+  console.log('🚀 App completa avviata');
   
-  console.log('🚀 App avviata');
-
-  // Se lo splash è finito, mostra il contenuto principale
-  if (showSplash) {
-    return (
-      <BrowserRouter>
-        <AuthProvider>
-          <SafeSplashScreen onComplete={() => {
-            console.log('✅ Splash completato');
-            setShowSplash(false);
-          }} />
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            height: '100vh', 
-            padding: '20px', 
-            fontFamily: 'sans-serif', 
-            textAlign: 'center',
-            backgroundColor: '#fef3c7',
-            color: '#92400e'
-          }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚀</div>
-            <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '600' }}>App con Splash</h1>
-            <p style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#92400e' }}>
-              Lo SplashScreen funziona correttamente!
-            </p>
-            <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#6b7280' }}>
-              Il componente è stato montato e smontato senza errori.
-            </p>
-            <button 
-              onClick={() => window.location.reload()}
-              style={{ 
-                padding: '10px 24px', 
-                backgroundColor: '#92400e', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '8px', 
-                fontSize: '14px', 
-                cursor: 'pointer'
-              }}
-            >
-              🔄 Ricarica
-            </button>
-          </div>
-        </AuthProvider>
-      </BrowserRouter>
-    );
-  }
-
-  // Dopo lo splash, mostra il contenuto principale
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '100vh', 
-          padding: '20px', 
-          fontFamily: 'sans-serif', 
-          textAlign: 'center',
-          backgroundColor: '#d1fae5',
-          color: '#065f46'
-        }}>
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-          <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '600' }}>App Pronta!</h1>
-          <p style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#065f46' }}>
-            Lo SplashScreen è stato rimosso correttamente.
-          </p>
-          <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#6b7280' }}>
-            Ora puoi reinserire i componenti originali uno per uno.
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            style={{ 
-              padding: '10px 24px', 
-              backgroundColor: '#065f46', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '8px', 
-              fontSize: '14px', 
-              cursor: 'pointer'
-            }}
-          >
-            🔄 Ricarica
-          </button>
-        </div>
-      </AuthProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <SplashScreen />
+        <PermissionsRequester />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+              <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+              <Route path="/legal/:slug" element={<LegalPage />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/trees" element={<ProtectedRoute><TreeSearchPage /></ProtectedRoute>} />
+              <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
+              <Route path="/articles" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
+              <Route path="/park-info" element={<ProtectedRoute><ParkInfoPage /></ProtectedRoute>} />
+              <Route path="/volunteers" element={<ProtectedRoute><VolunteersPage /></ProtectedRoute>} />
+              <Route path="/classify" element={<ProtectedRoute><ClassifyPage /></ProtectedRoute>} />
+              <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
+              <Route path="/games/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+              <Route path="/games/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
+              <Route path="/games/tree-guess" element={<ProtectedRoute><TreeGuessPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;
