@@ -2,106 +2,130 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// ✅ GESTIONE ERRORI GLOBALE - CATTURA TUTTI GLI ERRORI
+// ✅ LOG SU SCHERMO - VISIBILE ANCHE SE CRASH
+const showScreenLog = (message: string, isError: boolean = false) => {
+  try {
+    const root = document.getElementById('root');
+    if (root) {
+      const logDiv = document.createElement('div');
+      logDiv.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: ${isError ? 'rgba(255,0,0,0.9)' : 'rgba(0,0,0,0.8)'};
+        color: ${isError ? '#fff' : '#0f0'};
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        z-index: 99999;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        pointer-events: none;
+      `;
+      logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      root.appendChild(logDiv);
+      
+      // Limita a 10 log
+      const logs = root.querySelectorAll('div[style*="position: fixed; bottom: 10px;"]');
+      if (logs.length > 10) {
+        logs[0].remove();
+      }
+    }
+  } catch (e) {
+    // Ignora errori di log
+  }
+};
+
+// ✅ GESTIONE ERRORI CON LOG SU SCHERMO
 const handleGlobalError = (event: ErrorEvent) => {
-  console.error('❌ Errore globale catturato:', {
-    message: event.message,
-    filename: event.filename,
-    lineno: event.lineno,
-    colno: event.colno,
-    error: event.error
-  });
+  const errorMsg = `❌ ERRORE: ${event.message}`;
+  console.error(errorMsg, event);
+  showScreenLog(errorMsg, true);
+  showScreenLog(`📍 ${event.filename || 'unknown'}:${event.lineno || '?'}`, true);
   
-  // Mostra un messaggio all'utente invece di schermata bianca
+  // Mostra messaggio all'utente
   const root = document.getElementById('root');
-  if (root && !root.hasChildNodes()) {
+  if (root) {
     root.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:20px;font-family:-apple-system,system-ui,sans-serif;text-align:center;background:#f8f9fa;color:#1a1a1a;">
         <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-        <h2 style="margin:0 0 8px 0;font-size:20px;font-weight:600;">Si è verificato un errore</h2>
+        <h2 style="margin:0 0 8px 0;font-size:20px;font-weight:600;">Errore durante l'avvio</h2>
         <p style="margin:0 0 4px 0;font-size:14px;color:#666;">${event.message || 'Errore sconosciuto'}</p>
         <p style="margin:0 0 20px 0;font-size:12px;color:#999;">${event.filename || ''} riga ${event.lineno || ''}</p>
         <button onclick="location.reload()" style="padding:10px 24px;background:#1976d2;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">
           🔄 Riprova
         </button>
-        <button onclick="document.getElementById('error-details').style.display='block'" style="margin-top:12px;padding:8px 16px;background:#e0e0e0;color:#333;border:none;border-radius:8px;font-size:12px;cursor:pointer;">
-          📋 Mostra dettagli
-        </button>
-        <pre id="error-details" style="display:none;margin-top:16px;padding:12px;background:#fff;border:1px solid #ddd;border-radius:8px;font-size:11px;text-align:left;overflow:auto;max-width:100%;max-height:200px;white-space:pre-wrap;word-break:break-all;">
-          ${event.error?.stack || event.message || 'Nessun dettaglio disponibile'}
-        </pre>
       </div>
     `;
   }
   
-  // Evita che l'errore si propaghi ulteriormente
   event.preventDefault();
   return true;
 };
 
-// ✅ GESTIONE PROMISE NON GESTITE
 const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-  console.error('❌ Promise non gestita:', {
-    reason: event.reason,
-    promise: event.promise
-  });
-  
-  // Mostra un messaggio più leggero per errori di promise
-  const root = document.getElementById('root');
-  if (root && !root.hasChildNodes()) {
-    root.innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:20px;font-family:-apple-system,system-ui,sans-serif;text-align:center;background:#f8f9fa;color:#1a1a1a;">
-        <div style="font-size:48px;margin-bottom:16px;">⏳</div>
-        <h2 style="margin:0 0 8px 0;font-size:20px;font-weight:600;">Caricamento in corso...</h2>
-        <p style="margin:0;font-size:14px;color:#666;">Stiamo riscontrando un problema. Riprova tra qualche istante.</p>
-        <button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#1976d2;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">
-          🔄 Riprova
-        </button>
-      </div>
-    `;
-  }
-  
+  const errorMsg = `❌ PROMESSA NON GESTITA: ${event.reason}`;
+  console.error(errorMsg, event);
+  showScreenLog(errorMsg, true);
   event.preventDefault();
 };
 
-// ✅ LOG DELL'AMBIENTE (UTILE PER DEBUG)
-const logEnvironment = () => {
-  console.log('🌍 Ambiente rilevato:');
-  console.log('  - Platform:', navigator.platform);
-  console.log('  - User Agent:', navigator.userAgent);
-  console.log('  - Capacitor:', typeof window !== 'undefined' && window.Capacitor ? '✅ Presente' : '❌ Assente');
-  console.log('  - Is Native:', typeof window !== 'undefined' && window.Capacitor?.isNativePlatform ? window.Capacitor.isNativePlatform() : false);
-  console.log('  - URL Corrente:', window.location.href);
-  console.log('  - Root element:', document.getElementById('root') ? '✅ Trovato' : '❌ Non trovato');
+// ✅ FUNZIONE PER TESTARE STEP-BY-STEP
+const testSteps = [
+  '1. Avvio main.tsx',
+  '2. Caricamento index.css',
+  '3. Verifica root element',
+  '4. Import App',
+  '5. Creazione root',
+  '6. Render App'
+];
+
+let currentStep = 0;
+
+const logStep = (step: string) => {
+  currentStep++;
+  const msg = `✅ Step ${currentStep}/${testSteps.length}: ${step}`;
+  console.log(msg);
+  showScreenLog(msg);
 };
 
-// ✅ FUNZIONE DI AVVIO SICURA
+// ✅ AVVIO CON STEP LOGGATI
 const startApp = () => {
   try {
+    logStep('Avvio main.tsx');
+    
+    // Importa index.css (già fatto all'inizio)
+    logStep('Caricamento index.css');
+    
     const rootElement = document.getElementById('root');
+    logStep('Verifica root element');
     
     if (!rootElement) {
-      console.error('❌ Elemento root non trovato!');
-      document.body.innerHTML = `
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:20px;font-family:sans-serif;text-align:center;">
-          <h2>⚠️ Errore di inizializzazione</h2>
-          <p>Elemento root non trovato. Verifica che index.html contenga un div con id "root".</p>
-        </div>
-      `;
-      return;
+      throw new Error('Elemento root non trovato!');
     }
-
-    console.log('🚀 Avvio applicazione...');
-    logEnvironment();
     
-    // Render dell'app
-    createRoot(rootElement).render(<App />);
-    console.log('✅ Applicazione avviata con successo!');
+    logStep('Import App');
+    // App è già importata all'inizio
+    
+    logStep('Creazione root');
+    const root = createRoot(rootElement);
+    
+    logStep('Render App');
+    root.render(<App />);
+    
+    showScreenLog('✅ APP AVVIATA CON SUCCESSO!');
+    console.log('✅ App avviata con successo!');
     
   } catch (error) {
-    console.error('❌ Errore fatale durante l\'avvio:', error);
+    const msg = `❌ ERRORE FATALE: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`;
+    console.error(msg, error);
+    showScreenLog(msg, true);
+    showScreenLog(`📍 Stack: ${error instanceof Error ? error.stack : 'N/A'}`, true);
     
-    // Mostra errore visibile
     const root = document.getElementById('root');
     if (root) {
       root.innerHTML = `
@@ -109,7 +133,7 @@ const startApp = () => {
           <div style="font-size:48px;margin-bottom:16px;">🔥</div>
           <h2 style="margin:0 0 8px 0;font-size:20px;font-weight:600;">Errore fatale</h2>
           <p style="margin:0 0 4px 0;font-size:14px;color:#bf360c;">${error instanceof Error ? error.message : 'Errore sconosciuto'}</p>
-          <p style="margin:0 0 20px 0;font-size:12px;color:#bf360c;">Controlla la console per i dettagli</p>
+          <p style="margin:0 0 20px 0;font-size:12px;color:#bf360c;">Controlla i log in basso</p>
           <button onclick="location.reload()" style="padding:10px 24px;background:#e65100;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">
             🔄 Riprova
           </button>
@@ -119,21 +143,22 @@ const startApp = () => {
   }
 };
 
-// ✅ REGISTRA GESTORI ERRORI GLOBALI
+// ✅ REGISTRA GESTORI ERRORI
 window.addEventListener('error', handleGlobalError);
 window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
-// ✅ AVVIA L'APP SOLO DOPO CHE IL DOM È PRONTO
+// ✅ LOG AMBIENTE
+console.log('📱 Ambiente:', {
+  platform: navigator.platform,
+  userAgent: navigator.userAgent,
+  url: window.location.href,
+  Capacitor: typeof window !== 'undefined' && window.Capacitor ? '✅ Presente' : '❌ Assente',
+  isNative: typeof window !== 'undefined' && window.Capacitor?.isNativePlatform ? window.Capacitor.isNativePlatform() : false
+});
+
+// ✅ AVVIA
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', startApp);
 } else {
-  // DOM già pronto, avvia subito
   startApp();
 }
-
-// ✅ LOG PER LA BUILD (UTILE PER DEBUG)
-console.log('📦 Build info:');
-console.log('  - Data:', new Date().toISOString());
-console.log('  - Vite:', import.meta.env.MODE || 'unknown');
-console.log('  - Production:', import.meta.env.PROD ? '✅' : '❌');
-console.log('  - Dev:', import.meta.env.DEV ? '✅' : '❌');
