@@ -44,6 +44,31 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
+// Funzioni helper per import dinamici con fallback
+const loadGeolocation = async () => {
+  try {
+    const module = await import('@capacitor/geolocation');
+    return module.Geolocation;
+  } catch (e) {
+    console.warn('Geolocation plugin non disponibile:', e);
+    return null;
+  }
+};
+
+const loadGoogleMapsNative = async () => {
+  try {
+    const module = await import('@capacitor/google-maps');
+    return {
+      GoogleMap: module.GoogleMap,
+      LatLngBounds: module.LatLngBounds,
+      MapType: module.MapType,
+    };
+  } catch (e) {
+    console.warn('Google Maps native plugin non disponibile:', e);
+    return null;
+  }
+};
+
 const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const mapRef = useRef<HTMLElement | null>(null);
   const mapInstance = useRef<any>(null);
@@ -65,44 +90,14 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let cancelled = false;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    // Funzione per ottenere il modulo Geolocation dinamicamente
-    const getGeolocationModule = async () => {
-      const { Geolocation } = await import('@capacitor/geolocation');
-      return Geolocation;
-    };
-
-    // Funzione per ottenere il modulo Google Maps nativo dinamicamente
-    const getGoogleMapsModule = async () => {
-      const { GoogleMap, LatLngBounds, MapType } = await import('@capacitor/google-maps');
-      return { GoogleMap, LatLngBounds, MapType };
-    };
-
-    const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
-      if (!nativeMap.current || nativeBoundsFit.current) return;
-      nativeBoundsFit.current = true;
-      
-      const { LatLngBounds } = await getGoogleMapsModule();
-      const bounds = new LatLngBounds({
-        southwest: {
-          lat: Math.min(treePos.lat, userLatLng.lat),
-          lng: Math.min(treePos.lng, userLatLng.lng),
-        },
-        northeast: {
-          lat: Math.max(treePos.lat, userLatLng.lat),
-          lng: Math.max(treePos.lng, userLatLng.lng),
-        },
-        center: {
-          lat: (treePos.lat + userLatLng.lat) / 2,
-          lng: (treePos.lng + userLatLng.lng) / 2,
-        },
-      });
-      await nativeMap.current.fitBounds(bounds, 80);
-    };
-
     const startWatch = async (onPosition?: (pos: { lat: number; lng: number }) => void | Promise<void>) => {
       try {
-        const Geolocation = await getGeolocationModule();
-        
+        const Geolocation = await loadGeolocation();
+        if (!Geolocation) {
+          setError("Plugin geolocalizzazione non disponibile");
+          return;
+        }
+
         const perm = await Geolocation.checkPermissions();
         if (perm.location !== "granted") {
           const req = await Geolocation.requestPermissions({ permissions: ["location"] });
@@ -111,7 +106,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             return;
           }
         }
-        
+
         watchId.current = await Geolocation.watchPosition(
           { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
           (pos: any, err: any) => {
@@ -130,12 +125,47 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
+    const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
+      if (!nativeMap.current || nativeBoundsFit.current) return;
+      nativeBoundsFit.current = true;
+
+      try {
+        const mapsNative = await loadGoogleMapsNative();
+        if (!mapsNative) {
+          console.warn('Google Maps native non disponibile per fitBounds');
+          return;
+        }
+        const { LatLngBounds } = mapsNative;
+        const bounds = new LatLngBounds({
+          southwest: {
+            lat: Math.min(treePos.lat, userLatLng.lat),
+            lng: Math.min(treePos.lng, userLatLng.lng),
+          },
+          northeast: {
+            lat: Math.max(treePos.lat, userLatLng.lat),
+            lng: Math.max(treePos.lng, userLatLng.lng),
+          },
+          center: {
+            lat: (treePos.lat + userLatLng.lat) / 2,
+            lng: (treePos.lng + userLatLng.lng) / 2,
+          },
+        });
+        await nativeMap.current.fitBounds(bounds, 80);
+      } catch (e) {
+        console.warn('Errore fitNativeBounds:', e);
+      }
+    };
+
     const initNativeMap = async () => {
       if (!mapRef.current) return;
-      
+
       try {
-        const { GoogleMap, MapType } = await getGoogleMapsModule();
-        
+        const mapsNative = await loadGoogleMapsNative();
+        if (!mapsNative) {
+          throw new Error('Google Maps native plugin non disponibile');
+        }
+        const { GoogleMap, MapType } = mapsNative;
+
         const createdMap = await GoogleMap.create({
           id: "tree-map-dialog",
           element: mapRef.current,
@@ -146,7 +176,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             zoom: 19,
           },
         });
-        
+
         nativeMap.current = createdMap;
         await createdMap.setMapType(MapType.Satellite);
         await createdMap.addMarker({
@@ -156,7 +186,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           tintColor: { r: 22, g: 135, b: 96, a: 255 },
         });
         await createdMap.enableCurrentLocation(true).catch(() => {});
-        
+
         await startWatch(async (userLatLng) => {
           if (!nativeMap.current) return;
           if (nativeUserMarkerId.current) {
@@ -196,13 +226,13 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         label: { text: "🌳", fontSize: "24px" },
       });
 
-      // Per il web usiamo la geolocalizzazione standard del browser
+      // Web: usiamo la geolocalizzazione standard del browser
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
           (position) => {
             const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
             setUserPos(userLatLng);
-            
+
             if (!userMarker.current) {
               userMarker.current = new window.google.maps.Marker({
                 position: userLatLng,
@@ -227,12 +257,9 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           },
           (error) => {
             console.error("Errore geolocalizzazione web:", error);
-            setError("Impossibile ottenere la posizione. Verifica che il GPS sia attivo.");
           },
           { enableHighAccuracy: true }
         );
-      } else {
-        setError("Geolocalizzazione non supportata dal browser");
       }
     };
 
@@ -247,7 +274,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         if (!cancelled) {
           console.warn("Map loading failed, using embed fallback", e);
           setFallbackEmbed(true);
-          // Tentiamo comunque di ottenere la posizione per l'iframe
+          // Tentiamo la posizione per il fallback
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (pos) => {
@@ -256,7 +283,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
                   lng: pos.coords.longitude
                 });
               },
-              (err) => console.error("Errore posizione fallback:", err)
+              () => {}
             );
           }
         }
@@ -268,8 +295,10 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     return () => {
       cancelled = true;
       if (watchId.current !== null) {
-        getGeolocationModule().then(Geolocation => {
-          Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
+        loadGeolocation().then(Geolocation => {
+          if (Geolocation) {
+            Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
+          }
         }).catch(() => {});
         watchId.current = null;
       }
