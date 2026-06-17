@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // -- TUTTA LA TUA CONFIGURAZIONE ESISTENTE RIMANE INVARIATA --
   server: {
     host: "::",
     port: 8080,
@@ -17,5 +18,30 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+
+  // -- AGGIUNTE PER RISOLVERE IL PROBLEMA CON CAPACITOR --
+  build: {
+    rollupOptions: {
+      // Dice a Rollup di non provare a risolvere questi moduli durante la build
+      external: [
+        '@capacitor/core',
+        '@capacitor/geolocation',
+        '@capacitor/google-maps',
+      ],
+      output: {
+        // Mantiene il formato ESM per gli import dinamici
+        format: 'esm',
+        inlineDynamicImports: false,
+      },
+    },
+  },
+  // Ottimizzazione: esclude questi moduli dalla fase di ottimizzazione delle dipendenze
+  optimizeDeps: {
+    exclude: [
+      '@capacitor/core',
+      '@capacitor/geolocation',
+      '@capacitor/google-maps',
+    ],
   },
 }));
