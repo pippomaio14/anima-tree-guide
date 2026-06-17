@@ -44,18 +44,31 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// Funzioni helper per import dinamici con fallback
+// ✅ FUNZIONI DI CARICAMENTO CON FALLBACK ROBUSTI
 const loadGeolocation = async () => {
+  // Se siamo su web, non caricare il plugin nativo
+  if (!Capacitor.isNativePlatform()) {
+    console.log('🌐 Web: uso navigator.geolocation');
+    return null;
+  }
+  
   try {
+    // Import dinamico con try-catch
     const module = await import('@capacitor/geolocation');
     return module.Geolocation;
   } catch (e) {
-    console.warn('Geolocation plugin non disponibile:', e);
+    console.warn('⚠️ Geolocation plugin non disponibile:', e);
     return null;
   }
 };
 
 const loadGoogleMapsNative = async () => {
+  // Se siamo su web, non caricare il plugin nativo
+  if (!Capacitor.isNativePlatform()) {
+    console.log('🌐 Web: uso Google Maps JavaScript API');
+    return null;
+  }
+  
   try {
     const module = await import('@capacitor/google-maps');
     return {
@@ -64,7 +77,7 @@ const loadGoogleMapsNative = async () => {
       MapType: module.MapType,
     };
   } catch (e) {
-    console.warn('Google Maps native plugin non disponibile:', e);
+    console.warn('⚠️ Google Maps native plugin non disponibile:', e);
     return null;
   }
 };
@@ -90,12 +103,35 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let cancelled = false;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
+    // ✅ FUNZIONE STARTWATCH MODIFICATA
     const startWatch = async (onPosition?: (pos: { lat: number; lng: number }) => void | Promise<void>) => {
+      // Se siamo su web, usa navigator.geolocation
+      if (!Capacitor.isNativePlatform()) {
+        console.log('🌐 Web: avvio watch con navigator.geolocation');
+        if (navigator.geolocation) {
+          const watchIdWeb = navigator.geolocation.watchPosition(
+            (position) => {
+              const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
+              setUserPos(userLatLng);
+              if (onPosition) void Promise.resolve(onPosition(userLatLng)).catch(() => {});
+            },
+            (err) => {
+              console.error('Errore geolocalizzazione web:', err);
+              setError('Impossibile ottenere la posizione. Verifica che il GPS sia attivo.');
+            },
+            { enableHighAccuracy: true }
+          );
+          // Salva l'ID per cleanup
+          (watchId as any).current = watchIdWeb;
+        }
+        return;
+      }
+
+      // Su Android, usa il plugin Capacitor
       try {
         const Geolocation = await loadGeolocation();
         if (!Geolocation) {
-          setError("Plugin geolocalizzazione non disponibile");
-          return;
+          throw new Error('Plugin geolocalizzazione non disponibile');
         }
 
         const perm = await Geolocation.checkPermissions();
@@ -125,6 +161,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
+    // ✅ FUNZIONE FITNATIVEBOUNDS MODIFICATA
     const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
       if (!nativeMap.current || nativeBoundsFit.current) return;
       nativeBoundsFit.current = true;
@@ -156,6 +193,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
+    // ✅ INITNATIVEMAP MODIFICATO
     const initNativeMap = async () => {
       if (!mapRef.current) return;
 
@@ -205,6 +243,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
+    // ✅ INITWEBMAP - RIMANE INVARIATO
     const initWebMap = async () => {
       await loadGoogleMaps();
       if (cancelled || !mapRef.current) return;
@@ -227,47 +266,39 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       });
 
       // Web: usiamo la geolocalizzazione standard del browser
-      if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-          (position) => {
-            const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
-            setUserPos(userLatLng);
-
-            if (!userMarker.current) {
-              userMarker.current = new window.google.maps.Marker({
-                position: userLatLng,
-                map: mapInstance.current,
-                title: "La tua posizione",
-                icon: {
-                  path: window.google.maps.SymbolPath.CIRCLE,
-                  scale: 10,
-                  fillColor: "#4285F4",
-                  fillOpacity: 1,
-                  strokeColor: "#ffffff",
-                  strokeWeight: 3,
-                },
-              });
-              const bounds = new window.google.maps.LatLngBounds();
-              bounds.extend(treePos);
-              bounds.extend(userLatLng);
-              mapInstance.current.fitBounds(bounds, 80);
-            } else {
-              userMarker.current.setPosition(userLatLng);
-            }
-          },
-          (error) => {
-            console.error("Errore geolocalizzazione web:", error);
-          },
-          { enableHighAccuracy: true }
-        );
-      }
+      await startWatch((userLatLng) => {
+        if (!userMarker.current) {
+          userMarker.current = new window.google.maps.Marker({
+            position: userLatLng,
+            map: mapInstance.current,
+            title: "La tua posizione",
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#4285F4",
+              fillOpacity: 1,
+              strokeColor: "#ffffff",
+              strokeWeight: 3,
+            },
+          });
+          const bounds = new window.google.maps.LatLngBounds();
+          bounds.extend(treePos);
+          bounds.extend(userLatLng);
+          mapInstance.current.fitBounds(bounds, 80);
+        } else {
+          userMarker.current.setPosition(userLatLng);
+        }
+      });
     };
 
+    // ✅ INIT - LOGICA PRINCIPALE
     const init = async () => {
       try {
         if (Capacitor.isNativePlatform()) {
+          console.log('📱 Avvio mappa nativa su Android');
           await initNativeMap();
         } else {
+          console.log('🌐 Avvio mappa su Web');
           await initWebMap();
         }
       } catch (e: any) {
@@ -312,6 +343,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     };
   }, [open, tree]);
 
+  // ... (il resto del codice rimane invariato: distance, return, etc.)
   const distance = (() => {
     if (!userPos || !tree) return null;
     const R = 6371000;
