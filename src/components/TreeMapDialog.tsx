@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Capacitor } from "@capacitor/core";
-import { Geolocation } from "@capacitor/geolocation";
-import { GoogleMap, LatLngBounds, MapType } from "@capacitor/google-maps";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -49,7 +47,7 @@ const loadGoogleMaps = (): Promise<void> => {
 const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const mapRef = useRef<HTMLElement | null>(null);
   const mapInstance = useRef<any>(null);
-  const nativeMap = useRef<GoogleMap | null>(null);
+  const nativeMap = useRef<any>(null);
   const nativeUserMarkerId = useRef<string | null>(null);
   const nativeBoundsFit = useRef(false);
   const userMarker = useRef<any>(null);
@@ -67,9 +65,23 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let cancelled = false;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
+    // Funzione per ottenere il modulo Geolocation dinamicamente
+    const getGeolocationModule = async () => {
+      const { Geolocation } = await import('@capacitor/geolocation');
+      return Geolocation;
+    };
+
+    // Funzione per ottenere il modulo Google Maps nativo dinamicamente
+    const getGoogleMapsModule = async () => {
+      const { GoogleMap, LatLngBounds, MapType } = await import('@capacitor/google-maps');
+      return { GoogleMap, LatLngBounds, MapType };
+    };
+
     const fitNativeBounds = async (userLatLng: { lat: number; lng: number }) => {
       if (!nativeMap.current || nativeBoundsFit.current) return;
       nativeBoundsFit.current = true;
+      
+      const { LatLngBounds } = await getGoogleMapsModule();
       const bounds = new LatLngBounds({
         southwest: {
           lat: Math.min(treePos.lat, userLatLng.lat),
@@ -89,6 +101,8 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
 
     const startWatch = async (onPosition?: (pos: { lat: number; lng: number }) => void | Promise<void>) => {
       try {
+        const Geolocation = await getGeolocationModule();
+        
         const perm = await Geolocation.checkPermissions();
         if (perm.location !== "granted") {
           const req = await Geolocation.requestPermissions({ permissions: ["location"] });
@@ -97,9 +111,10 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             return;
           }
         }
+        
         watchId.current = await Geolocation.watchPosition(
           { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
-          (pos, err) => {
+          (pos: any, err: any) => {
             if (err) {
               setError(`Posizione non disponibile: ${err.message}`);
               return;
@@ -117,37 +132,47 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
 
     const initNativeMap = async () => {
       if (!mapRef.current) return;
-      const createdMap = await GoogleMap.create({
-        id: "tree-map-dialog",
-        element: mapRef.current,
-        apiKey: GOOGLE_MAPS_KEY,
-        forceCreate: true,
-        config: {
-          center: treePos,
-          zoom: 19,
-        },
-      });
-      nativeMap.current = createdMap;
-      await createdMap.setMapType(MapType.Satellite);
-      await createdMap.addMarker({
-        coordinate: treePos,
-        title: `Albero #${tree.tree_number}`,
-        snippet: tree.adopter_name,
-        tintColor: { r: 22, g: 135, b: 96, a: 255 },
-      });
-      await createdMap.enableCurrentLocation(true).catch(() => {});
-      await startWatch(async (userLatLng) => {
-        if (!nativeMap.current) return;
-        if (nativeUserMarkerId.current) {
-          await nativeMap.current.removeMarker(nativeUserMarkerId.current).catch(() => {});
-        }
-        nativeUserMarkerId.current = await nativeMap.current.addMarker({
-          coordinate: userLatLng,
-          title: "La tua posizione",
-          tintColor: { r: 66, g: 133, b: 244, a: 255 },
+      
+      try {
+        const { GoogleMap, MapType } = await getGoogleMapsModule();
+        
+        const createdMap = await GoogleMap.create({
+          id: "tree-map-dialog",
+          element: mapRef.current,
+          apiKey: GOOGLE_MAPS_KEY,
+          forceCreate: true,
+          config: {
+            center: treePos,
+            zoom: 19,
+          },
         });
-        await fitNativeBounds(userLatLng).catch(() => {});
-      });
+        
+        nativeMap.current = createdMap;
+        await createdMap.setMapType(MapType.Satellite);
+        await createdMap.addMarker({
+          coordinate: treePos,
+          title: `Albero #${tree.tree_number}`,
+          snippet: tree.adopter_name,
+          tintColor: { r: 22, g: 135, b: 96, a: 255 },
+        });
+        await createdMap.enableCurrentLocation(true).catch(() => {});
+        
+        await startWatch(async (userLatLng) => {
+          if (!nativeMap.current) return;
+          if (nativeUserMarkerId.current) {
+            await nativeMap.current.removeMarker(nativeUserMarkerId.current).catch(() => {});
+          }
+          nativeUserMarkerId.current = await nativeMap.current.addMarker({
+            coordinate: userLatLng,
+            title: "La tua posizione",
+            tintColor: { r: 66, g: 133, b: 244, a: 255 },
+          });
+          await fitNativeBounds(userLatLng).catch(() => {});
+        });
+      } catch (error) {
+        console.error("Errore initNativeMap:", error);
+        throw error;
+      }
     };
 
     const initWebMap = async () => {
@@ -171,29 +196,44 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         label: { text: "🌳", fontSize: "24px" },
       });
 
-      await startWatch((userLatLng) => {
-        if (!userMarker.current) {
-          userMarker.current = new window.google.maps.Marker({
-            position: userLatLng,
-            map: mapInstance.current,
-            title: "La tua posizione",
-            icon: {
-              path: window.google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: "#4285F4",
-              fillOpacity: 1,
-              strokeColor: "#ffffff",
-              strokeWeight: 3,
-            },
-          });
-          const bounds = new window.google.maps.LatLngBounds();
-          bounds.extend(treePos);
-          bounds.extend(userLatLng);
-          mapInstance.current.fitBounds(bounds, 80);
-        } else {
-          userMarker.current.setPosition(userLatLng);
-        }
-      });
+      // Per il web usiamo la geolocalizzazione standard del browser
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            const userLatLng = { lat: position.coords.latitude, lng: position.coords.longitude };
+            setUserPos(userLatLng);
+            
+            if (!userMarker.current) {
+              userMarker.current = new window.google.maps.Marker({
+                position: userLatLng,
+                map: mapInstance.current,
+                title: "La tua posizione",
+                icon: {
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  scale: 10,
+                  fillColor: "#4285F4",
+                  fillOpacity: 1,
+                  strokeColor: "#ffffff",
+                  strokeWeight: 3,
+                },
+              });
+              const bounds = new window.google.maps.LatLngBounds();
+              bounds.extend(treePos);
+              bounds.extend(userLatLng);
+              mapInstance.current.fitBounds(bounds, 80);
+            } else {
+              userMarker.current.setPosition(userLatLng);
+            }
+          },
+          (error) => {
+            console.error("Errore geolocalizzazione web:", error);
+            setError("Impossibile ottenere la posizione. Verifica che il GPS sia attivo.");
+          },
+          { enableHighAccuracy: true }
+        );
+      } else {
+        setError("Geolocalizzazione non supportata dal browser");
+      }
     };
 
     const init = async () => {
@@ -207,7 +247,18 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         if (!cancelled) {
           console.warn("Map loading failed, using embed fallback", e);
           setFallbackEmbed(true);
-          await startWatch();
+          // Tentiamo comunque di ottenere la posizione per l'iframe
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                setUserPos({
+                  lat: pos.coords.latitude,
+                  lng: pos.coords.longitude
+                });
+              },
+              (err) => console.error("Errore posizione fallback:", err)
+            );
+          }
         }
       }
     };
@@ -217,7 +268,9 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     return () => {
       cancelled = true;
       if (watchId.current !== null) {
-        Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
+        getGeolocationModule().then(Geolocation => {
+          Geolocation.clearWatch({ id: watchId.current }).catch(() => {});
+        }).catch(() => {});
         watchId.current = null;
       }
       if (nativeMap.current) {
