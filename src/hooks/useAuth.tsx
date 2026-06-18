@@ -1,8 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-console.log('🔍 [useAuth] Verifica connessione Supabase:');
-console.log('  - supabase:', supabase ? '✅ Caricato' : '❌ Non caricato');
-console.log('  - supabase.auth:', supabase.auth ? '✅ Disponibile' : '❌ Non disponibile');
 import type { User, Session } from "@supabase/supabase-js";
 
 // ✅ FUNZIONE DI LOG PER DEBUG
@@ -15,9 +12,7 @@ const bootLog = (message: string, type: 'info' | 'warn' | 'error' = 'info') => {
       logEl.scrollTop = logEl.scrollHeight;
     }
     console.log(`[AuthProvider] ${message}`);
-  } catch (e) {
-    // Ignora errori di log
-  }
+  } catch (e) {}
 };
 
 interface AuthContextType {
@@ -35,95 +30,6 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   signOut: async () => {},
 });
-
-// ✅ COMPONENTE DI TEST PER ISOLARE IL PROBLEMA
-const TestComponent = () => {
-  bootLog('🔬 [TEST] TestComponent montato correttamente!');
-  
-  useEffect(() => {
-    bootLog('🔬 [TEST] useEffect di TestComponent eseguito');
-  }, []);
-  
-  return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '100vh', 
-      padding: '20px', 
-      fontFamily: 'sans-serif', 
-      textAlign: 'center',
-      backgroundColor: '#f0fdf4',
-      color: '#166534'
-    }}>
-      <div style={{ fontSize: '64px', marginBottom: '16px' }}>✅</div>
-      <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '600' }}>Test Riuscito!</h1>
-      <p style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#166534' }}>
-        AuthProvider funziona e ha renderizzato questo componente.
-      </p>
-      <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#6b7280' }}>
-        Se vedi questo messaggio, il problema è nei componenti figli (Index, MobileLayout, ecc.).
-      </p>
-      <button 
-        onClick={() => window.location.reload()}
-        style={{ 
-          padding: '10px 24px', 
-          backgroundColor: '#166534', 
-          color: 'white', 
-          border: 'none', 
-          borderRadius: '8px', 
-          fontSize: '14px', 
-          cursor: 'pointer',
-          marginTop: '10px'
-        }}
-      >
-        🔄 Ricarica
-      </button>
-      <button 
-        onClick={() => {
-          bootLog('🔬 [TEST] Pulsante "Mostra dettagli" cliccato');
-          const details = document.getElementById('test-details');
-          if (details) {
-            details.style.display = details.style.display === 'none' ? 'block' : 'none';
-          }
-        }}
-        style={{ 
-          padding: '8px 16px', 
-          backgroundColor: '#e5e7eb', 
-          color: '#374151', 
-          border: 'none', 
-          borderRadius: '8px', 
-          fontSize: '12px', 
-          cursor: 'pointer',
-          marginTop: '10px'
-        }}
-      >
-        📋 Mostra dettagli
-      </button>
-      <pre id="test-details" style={{ 
-        display: 'none', 
-        marginTop: '16px', 
-        padding: '12px', 
-        backgroundColor: '#ffffff', 
-        border: '1px solid #d1d5db', 
-        borderRadius: '8px', 
-        fontSize: '11px', 
-        textAlign: 'left', 
-        overflow: 'auto', 
-        maxWidth: '100%', 
-        maxHeight: '200px', 
-        whiteSpace: 'pre-wrap', 
-        wordBreak: 'break-all',
-        color: '#1f2937'
-      }}>
-        {`Test eseguito il: ${new Date().toLocaleString()}
-Ambiente: ${typeof window !== 'undefined' && window.Capacitor ? 'Capacitor (Android)' : 'Web'}
-User: null (non autenticato)`}
-      </pre>
-    </div>
-  );
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   bootLog('AuthProvider montato');
@@ -248,20 +154,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ✅ LOG DEL CONTESTO FINALE
   bootLog(`Provider render - loading: ${loading}, user: ${user ? 'presente' : 'null'}, isAdmin: ${isAdmin}`);
 
-  // ✅ DETERMINA SE MOSTRARE IL TEST O I CHILDREN
-  // Attiva il test cambiando questa variabile a 'true'
-  const USE_TEST_COMPONENT = false; // <- CAMBIA A 'true' PER TESTARE
-  
-  if (USE_TEST_COMPONENT) {
-    bootLog('🔬 [TEST] Modalità test attivata - mostro TestComponent');
-    return (
-      <AuthContext.Provider value={{ user, session, loading, isAdmin, signOut }}>
-        <TestComponent />
-      </AuthContext.Provider>
-    );
-  }
-
-  bootLog('Modalità normale - mostro children');
   return (
     <AuthContext.Provider value={{ user, session, loading, isAdmin, signOut }}>
       {children}
@@ -278,5 +170,4 @@ export const useAuth = () => {
   return context;
 };
 
-// ✅ LOG DI ESPORTAZIONE
 bootLog('AuthProvider esportato');
