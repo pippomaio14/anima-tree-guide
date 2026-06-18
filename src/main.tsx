@@ -1,72 +1,35 @@
-// ✅ MAIN.TSX - SOLO IMPORT, NESSUN PULSANTE
+// ✅ MAIN.TSX - VERSIONE STATICA (nessun import dinamico, nessuna promessa)
+import React from "react";
+import { createRoot } from "react-dom/client";
 import "./index.css";
+import App from "./App";
 
 console.log('🔍 main.tsx caricato');
 
-// Funzione che carica App
-const loadApp = () => {
-  console.log('🔍 Tentativo di importare App...');
-  return import('./App')
-    .then((module) => {
-      console.log('✅ App importata con successo!', module);
-      return module;
-    })
-    .catch((error) => {
-      console.error('❌ Errore durante l\'import di App:', error);
-      throw error;
-    });
-};
+const rootElement = document.getElementById('root');
 
-// Esegui il caricamento
-const root = document.getElementById('root');
-if (root) {
-  // Mostra un messaggio statico - senza pulsanti
-  root.innerHTML = `
-    <div style="
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #f0fdf4;
-      font-family: sans-serif;
-      padding: 20px;
-    ">
-      <h1 style="color: #166534; font-size: 28px;">⏳ Test Import</h1>
-      <p style="color: #4a5568;">Sto importando App...</p>
-      <div id="import-status" style="margin-top: 20px; padding: 10px; background: #e5e7eb; border-radius: 8px; width: 100%; max-width: 400px; text-align: center;">
-        <span style="color: #6b7280;">In attesa...</span>
+if (rootElement) {
+  console.log('✅ Root element trovato');
+  try {
+    // Crea il root e renderizza App in modo statico
+    const root = createRoot(rootElement);
+    root.render(<App />);
+    console.log('✅ App renderizzata con successo!');
+  } catch (error) {
+    console.error('❌ Errore durante il render:', error);
+    rootElement.innerHTML = `
+      <div style="padding: 20px; background: #fee2e2; border: 1px solid #dc2626; border-radius: 8px; margin: 20px; font-family: sans-serif;">
+        <h2 style="color: #dc2626; margin-top: 0;">❌ Errore di Render</h2>
+        <pre style="background: #1f2937; color: #fbbf24; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto;">
+          ${String(error)}
+        </pre>
+        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          🔄 Riprova
+        </button>
       </div>
-    </div>
-  `;
-
-  // Carica App
-  loadApp()
-    .then((module) => {
-      console.log('✅ App caricata');
-      const statusEl = document.getElementById('import-status');
-      if (statusEl) {
-        statusEl.innerHTML = `
-          <span style="color: #166534; font-weight: bold;">✅ App importata con successo!</span>
-          <br>
-          <span style="color: #6b7280; font-size: 12px;">
-            ${Object.keys(module).join(', ')}
-          </span>
-        `;
-      }
-      console.log('✅ Test completato - nessun crash!');
-    })
-    .catch((error) => {
-      console.error('❌ Errore:', error);
-      const statusEl = document.getElementById('import-status');
-      if (statusEl) {
-        statusEl.innerHTML = `
-          <span style="color: #dc2626; font-weight: bold;">❌ Errore di import</span>
-          <br>
-          <pre style="background: #1f2937; color: #fbbf24; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto; text-align: left; margin-top: 10px;">
-            ${String(error)}
-          </pre>
-        `;
-      }
-    });
+    `;
+  }
+} else {
+  console.error('❌ Root element non trovato!');
+  document.body.innerHTML = '<h1 style="color:red;">❌ Root element non trovato</h1>';
 }
