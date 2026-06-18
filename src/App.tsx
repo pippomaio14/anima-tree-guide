@@ -38,18 +38,89 @@ const bootLog = (message: string) => {
   } catch (e) {}
 };
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+// ✅ COMPONENTE DI LOADING
+const LoadingScreen = () => {
+  bootLog('LoadingScreen renderizzato');
+  return (
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '100vh',
+      flexDirection: 'column',
+      gap: '20px'
+    }}>
+      <div style={{ fontSize: '48px' }}>🌳</div>
+      <div style={{ color: '#166534', fontSize: '18px' }}>Caricamento...</div>
+    </div>
+  );
 };
 
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+// ✅ COMPONENTE APP ROUTER
+const AppRouter = () => {
   const { user, loading } = useAuth();
-  if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
-  return <>{children}</>;
+  
+  bootLog(`AppRouter: loading=${loading}, user=${user ? 'presente' : 'null'}`);
+  
+  // Mostra loading mentre l'autenticazione è in corso
+  if (loading) {
+    bootLog('Mostro loading screen');
+    return <LoadingScreen />;
+  }
+  
+  bootLog(`Mostro routes: ${user ? 'Index' : 'LoginPage'}`);
+  
+  return (
+    <Routes>
+      <Route path="/login" element={
+        !user ? <LoginPage /> : <Navigate to="/" replace />
+      } />
+      <Route path="/register" element={
+        !user ? <RegisterPage /> : <Navigate to="/" replace />
+      } />
+      <Route path="/legal/:slug" element={<LegalPage />} />
+      <Route path="/" element={
+        user ? <Index /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/trees" element={
+        user ? <TreeSearchPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/events" element={
+        user ? <EventsPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/articles" element={
+        user ? <ArticlesPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/park-info" element={
+        user ? <ParkInfoPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/volunteers" element={
+        user ? <VolunteersPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/classify" element={
+        user ? <ClassifyPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/games" element={
+        user ? <GamesPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/games/quiz" element={
+        user ? <QuizPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/games/challenge" element={
+        user ? <ChallengePage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/games/tree-guess" element={
+        user ? <TreeGuessPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/profile" element={
+        user ? <ProfilePage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="/admin" element={
+        user ? <AdminPage /> : <Navigate to="/login" replace />
+      } />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 };
 
 const App = () => {
@@ -64,85 +135,7 @@ const App = () => {
         <PermissionsRequester />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/login" element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              } />
-              <Route path="/register" element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              } />
-              <Route path="/legal/:slug" element={<LegalPage />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/trees" element={
-                <ProtectedRoute>
-                  <TreeSearchPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/events" element={
-                <ProtectedRoute>
-                  <EventsPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/articles" element={
-                <ProtectedRoute>
-                  <ArticlesPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/park-info" element={
-                <ProtectedRoute>
-                  <ParkInfoPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/volunteers" element={
-                <ProtectedRoute>
-                  <VolunteersPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/classify" element={
-                <ProtectedRoute>
-                  <ClassifyPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/games" element={
-                <ProtectedRoute>
-                  <GamesPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/games/quiz" element={
-                <ProtectedRoute>
-                  <QuizPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/games/challenge" element={
-                <ProtectedRoute>
-                  <ChallengePage />
-                </ProtectedRoute>
-              } />
-              <Route path="/games/tree-guess" element={
-                <ProtectedRoute>
-                  <TreeGuessPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminPage />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppRouter />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
