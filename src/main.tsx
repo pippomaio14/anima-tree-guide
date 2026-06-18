@@ -1,15 +1,16 @@
-// ✅ MAIN.TSX - VERSIONE DEFINITIVA (senza require, senza top-level await)
+// ✅ MAIN.TSX - IMPORTA APP MA NON LA USA
 import "./index.css";
 
 console.log('🔍 main.tsx caricato');
 
-// Funzione che carica App dinamicamente usando import()
+// Funzione che carica App e cattura qualsiasi errore
 const loadApp = () => {
   console.log('🔍 Tentativo di importare App...');
   return import('./App')
     .then((module) => {
       console.log('✅ App importata con successo!', module);
-      return module.default;
+      // Non facciamo nulla con App - solo import
+      return module;
     })
     .catch((error) => {
       console.error('❌ Errore durante l\'import di App:', error);
@@ -20,7 +21,7 @@ const loadApp = () => {
 // Esegui il caricamento
 const root = document.getElementById('root');
 if (root) {
-  // Mostra un messaggio di caricamento
+  // Mostra un messaggio
   root.innerHTML = `
     <div style="
       display: flex;
@@ -32,68 +33,58 @@ if (root) {
       font-family: sans-serif;
       padding: 20px;
     ">
-      <h1 style="color: #166534; font-size: 28px;">⏳ Caricamento...</h1>
-      <p style="color: #4a5568;">Sto caricando l'applicazione...</p>
-      <div style="margin-top: 20px; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top: 4px solid #166534; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      <style>
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
+      <h1 style="color: #166534; font-size: 28px;">⏳ Test Import</h1>
+      <p style="color: #4a5568;">Sto importando App...</p>
+      <div id="import-status" style="margin-top: 20px; padding: 10px; background: #e5e7eb; border-radius: 8px; width: 100%; max-width: 400px; text-align: center;">
+        <span style="color: #6b7280;">In attesa...</span>
+      </div>
     </div>
   `;
 
-  // Carica App e la renderizza
+  // Carica App
   loadApp()
-    .then((App) => {
-      console.log('✅ App caricata, avvio render');
-      // Qui renderizzerai App con React
-      // Per ora, mostriamo un messaggio
-      root.innerHTML = `
-        <div style="
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          background-color: #dbeafe;
-          font-family: sans-serif;
-          padding: 20px;
-        ">
-          <h1 style="color: #1e40af; font-size: 28px;">✅ App Caricata!</h1>
-          <p style="color: #3b82f6;">App è stata caricata con successo.</p>
-          <p style="color: #6b7280; font-size: 14px; margin-top: 10px;">
-            Ora possiamo renderizzare App con React.
-          </p>
-          <button 
-            onclick="document.getElementById('app-details').style.display='block'"
-            style="margin-top: 20px; padding: 8px 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer;"
-          >
-            Dettagli
-          </button>
-          <pre id="app-details" style="display: none; margin-top: 20px; padding: 10px; background: #1f2937; color: #fbbf24; border-radius: 4px; font-size: 12px; text-align: left; overflow: auto; max-width: 100%;">
-            ${String(App)}
-          </pre>
-        </div>
+    .then((module) => {
+      console.log('✅ App caricata, mostro successo');
+      const statusEl = document.getElementById('import-status');
+      if (statusEl) {
+        statusEl.innerHTML = `
+          <span style="color: #166534; font-weight: bold;">✅ App importata con successo!</span>
+          <br>
+          <span style="color: #6b7280; font-size: 12px;">
+            ${Object.keys(module).join(', ')}
+          </span>
+        `;
+      }
+      
+      // Aggiungi un pulsante per testare il render
+      const button = document.createElement('button');
+      button.textContent = '📱 Renderizza App';
+      button.style.cssText = `
+        margin-top: 20px;
+        padding: 12px 24px;
+        background: #166534;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
       `;
+      button.onclick = () => {
+        alert('Il pulsante funziona! Ora possiamo renderizzare App.');
+      };
+      root.appendChild(button);
     })
     .catch((error) => {
       console.error('❌ Errore durante il caricamento:', error);
-      root.innerHTML = `
-        <div style="padding: 20px; background: #fee2e2; border: 1px solid #dc2626; border-radius: 8px; margin: 20px; font-family: sans-serif;">
-          <h2 style="color: #dc2626; margin-top: 0;">❌ Errore di Caricamento</h2>
-          <p style="color: #6b7280;">Errore durante il caricamento di App:</p>
-          <pre style="background: #1f2937; color: #fbbf24; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto; white-space: pre-wrap; word-break: break-all;">
+      const statusEl = document.getElementById('import-status');
+      if (statusEl) {
+        statusEl.innerHTML = `
+          <span style="color: #dc2626; font-weight: bold;">❌ Errore di import</span>
+          <br>
+          <pre style="background: #1f2937; color: #fbbf24; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto; text-align: left; margin-top: 10px;">
             ${String(error)}
           </pre>
-          <button 
-            onclick="location.reload()"
-            style="margin-top: 20px; padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer;"
-          >
-            🔄 Riprova
-          </button>
-        </div>
-      `;
+        `;
+      }
     });
 }
