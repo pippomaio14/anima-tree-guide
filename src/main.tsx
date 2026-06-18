@@ -1,4 +1,3 @@
-// ✅ MAIN.TSX - VERSIONE STATICA (nessun import dinamico, nessuna promessa)
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -11,7 +10,6 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   console.log('✅ Root element trovato');
   try {
-    // Crea il root e renderizza App in modo statico
     const root = createRoot(rootElement);
     root.render(<App />);
     console.log('✅ App renderizzata con successo!');
