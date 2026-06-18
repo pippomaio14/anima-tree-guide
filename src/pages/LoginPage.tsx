@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 // ✅ LOG PER DEBUG
 const bootLog = (message: string) => {
@@ -30,7 +31,7 @@ const LoginPage = () => {
     }
   }, [user, navigate]);
 
-  bootLog('Render JSX');
+  bootLog('Render JSX con Button di shadcn');
 
   return (
     <div style={{ 
@@ -44,7 +45,7 @@ const LoginPage = () => {
       fontFamily: 'sans-serif'
     }}>
       <h1 style={{ color: '#166534', marginBottom: '10px' }}>🌳 Anima Tree Guide</h1>
-      <p style={{ color: '#4a5568', marginBottom: '20px' }}>Pagina di login (versione semplice)</p>
+      <p style={{ color: '#4a5568', marginBottom: '20px' }}>Test con Button di shadcn</p>
       
       <div style={{ 
         backgroundColor: 'white', 
@@ -92,24 +93,16 @@ const LoginPage = () => {
           />
         </div>
         
-        <button 
+        {/* ✅ SOLO BUTTON DI SHADCN */}
+        <Button 
           onClick={() => {
-            bootLog('Tentativo login');
+            bootLog('Tentativo login con Button shadcn');
             navigate('/');
           }}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: '#166534',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            cursor: 'pointer'
-          }}
+          className="w-full"
         >
-          Accedi (test)
-        </button>
+          Accedi (test shadcn)
+        </Button>
         
         <p style={{ textAlign: 'center', marginTop: '15px', fontSize: '14px', color: '#6b7280' }}>
           <button 
