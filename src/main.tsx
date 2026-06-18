@@ -1,15 +1,14 @@
-// ✅ MAIN.TSX - IMPORTA APP MA NON LA USA
+// ✅ MAIN.TSX - SOLO IMPORT, NESSUN PULSANTE
 import "./index.css";
 
 console.log('🔍 main.tsx caricato');
 
-// Funzione che carica App e cattura qualsiasi errore
+// Funzione che carica App
 const loadApp = () => {
   console.log('🔍 Tentativo di importare App...');
   return import('./App')
     .then((module) => {
       console.log('✅ App importata con successo!', module);
-      // Non facciamo nulla con App - solo import
       return module;
     })
     .catch((error) => {
@@ -21,7 +20,7 @@ const loadApp = () => {
 // Esegui il caricamento
 const root = document.getElementById('root');
 if (root) {
-  // Mostra un messaggio
+  // Mostra un messaggio statico - senza pulsanti
   root.innerHTML = `
     <div style="
       display: flex;
@@ -44,7 +43,7 @@ if (root) {
   // Carica App
   loadApp()
     .then((module) => {
-      console.log('✅ App caricata, mostro successo');
+      console.log('✅ App caricata');
       const statusEl = document.getElementById('import-status');
       if (statusEl) {
         statusEl.innerHTML = `
@@ -55,27 +54,10 @@ if (root) {
           </span>
         `;
       }
-      
-      // Aggiungi un pulsante per testare il render
-      const button = document.createElement('button');
-      button.textContent = '📱 Renderizza App';
-      button.style.cssText = `
-        margin-top: 20px;
-        padding: 12px 24px;
-        background: #166534;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-      `;
-      button.onclick = () => {
-        alert('Il pulsante funziona! Ora possiamo renderizzare App.');
-      };
-      root.appendChild(button);
+      console.log('✅ Test completato - nessun crash!');
     })
     .catch((error) => {
-      console.error('❌ Errore durante il caricamento:', error);
+      console.error('❌ Errore:', error);
       const statusEl = document.getElementById('import-status');
       if (statusEl) {
         statusEl.innerHTML = `
