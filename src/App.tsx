@@ -26,6 +26,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
+// ✅ LOG PER DEBUG
+const bootLog = (message: string) => {
+  try {
+    const logEl = document.getElementById('boot-log');
+    if (logEl) {
+      logEl.innerHTML += `\n✅ [App] ${message}`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    console.log(`[App] ${message}`);
+  } catch (e) {}
+};
+
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -41,7 +53,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App = () => {
-  console.log('🚀 App completa avviata');
+  bootLog('App render avviato');
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -53,22 +65,82 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-              <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+              <Route path="/login" element={
+                <PublicRoute>
+                  <LoginPage />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <RegisterPage />
+                </PublicRoute>
+              } />
               <Route path="/legal/:slug" element={<LegalPage />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/trees" element={<ProtectedRoute><TreeSearchPage /></ProtectedRoute>} />
-              <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
-              <Route path="/articles" element={<ProtectedRoute><ArticlesPage /></ProtectedRoute>} />
-              <Route path="/park-info" element={<ProtectedRoute><ParkInfoPage /></ProtectedRoute>} />
-              <Route path="/volunteers" element={<ProtectedRoute><VolunteersPage /></ProtectedRoute>} />
-              <Route path="/classify" element={<ProtectedRoute><ClassifyPage /></ProtectedRoute>} />
-              <Route path="/games" element={<ProtectedRoute><GamesPage /></ProtectedRoute>} />
-              <Route path="/games/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
-              <Route path="/games/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
-              <Route path="/games/tree-guess" element={<ProtectedRoute><TreeGuessPage /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/trees" element={
+                <ProtectedRoute>
+                  <TreeSearchPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/events" element={
+                <ProtectedRoute>
+                  <EventsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/articles" element={
+                <ProtectedRoute>
+                  <ArticlesPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/park-info" element={
+                <ProtectedRoute>
+                  <ParkInfoPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/volunteers" element={
+                <ProtectedRoute>
+                  <VolunteersPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/classify" element={
+                <ProtectedRoute>
+                  <ClassifyPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/games" element={
+                <ProtectedRoute>
+                  <GamesPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/games/quiz" element={
+                <ProtectedRoute>
+                  <QuizPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/games/challenge" element={
+                <ProtectedRoute>
+                  <ChallengePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/games/tree-guess" element={
+                <ProtectedRoute>
+                  <TreeGuessPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminPage />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
