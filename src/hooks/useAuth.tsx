@@ -1,17 +1,8 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+// ✅ USEAUTH.TSX - VERSIONE MINIMALE (SENZA SUPABASE)
+import { createContext, useContext, ReactNode } from "react";
 
-// ✅ VERSIONE MOCK DI AUTH PROVIDER - SENZA SUPABASE
-// Questo file serve per testare se il problema è in Supabase
-
-interface AuthContextType {
-  user: null;
-  session: null;
-  loading: boolean;
-  isAdmin: boolean;
-  signOut: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType>({
+// Contesto minimale
+const AuthContext = createContext({
   user: null,
   session: null,
   loading: false,
@@ -20,20 +11,15 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  console.log('✅ [Mock AuthProvider] Montato');
+  console.log('✅ AuthProvider minimale montato');
   
-  // Stato fittizio - sempre non autenticato
-  const [loading] = useState(false);
-  
-  console.log('✅ [Mock AuthProvider] Render - loading: false, user: null');
-
   return (
-    <AuthContext.Provider value={{ 
-      user: null, 
-      session: null, 
-      loading: false, 
-      isAdmin: false, 
-      signOut: async () => {} 
+    <AuthContext.Provider value={{
+      user: null,
+      session: null,
+      loading: false,
+      isAdmin: false,
+      signOut: async () => {},
     }}>
       {children}
     </AuthContext.Provider>
