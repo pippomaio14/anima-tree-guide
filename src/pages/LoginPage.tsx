@@ -1,116 +1,132 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { TreePine, Leaf } from "lucide-react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+
+// ✅ LOG PER DEBUG
+const bootLog = (message: string) => {
+  try {
+    const logEl = document.getElementById('boot-log');
+    if (logEl) {
+      logEl.innerHTML += `\n✅ [LoginPage] ${message}`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    console.log(`[LoginPage] ${message}`);
+  } catch (e) {}
+};
 
 const LoginPage = () => {
+  bootLog('Componente montato');
+  
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  
+  bootLog(`user: ${user ? 'presente' : 'null'}`);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      toast.error(error.message);
-    } else {
-      navigate("/");
+  useEffect(() => {
+    bootLog('useEffect eseguito');
+    if (user) {
+      bootLog('Utente loggato, reindirizzo a /');
+      navigate('/');
     }
-    setLoading(false);
-  };
+  }, [user, navigate]);
 
-  const handleForgotPassword = async () => {
-    if (!email) {
-      toast.error("Inserisci la tua email per recuperare la password");
-      return;
-    }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
-    });
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Email di recupero inviata! Controlla la tua casella.");
-    }
-  };
+  bootLog('Render JSX');
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-background">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm space-y-8"
-      >
-        <div className="text-center space-y-2">
-          <img
-            src="/logo.png"
-            alt="Parco Bosco Anima Mundi"
-            className="w-32 h-32 mx-auto mb-2 object-contain"
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: '100vh', 
+      padding: '20px',
+      backgroundColor: '#f0fdf4',
+      fontFamily: 'sans-serif'
+    }}>
+      <h1 style={{ color: '#166534', marginBottom: '10px' }}>🌳 Anima Tree Guide</h1>
+      <p style={{ color: '#4a5568', marginBottom: '20px' }}>Pagina di login (versione semplice)</p>
+      
+      <div style={{ 
+        backgroundColor: 'white', 
+        padding: '30px', 
+        borderRadius: '12px', 
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        width: '100%',
+        maxWidth: '400px'
+      }}>
+        <p style={{ textAlign: 'center', color: '#6b7280', marginBottom: '20px' }}>
+          {user ? 'Sei già loggato!' : 'Inserisci le tue credenziali'}
+        </p>
+        
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px' }}>
+            Email
+          </label>
+          <input 
+            type="email" 
+            placeholder="nome@email.com"
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              fontSize: '14px'
+            }}
           />
-          <p className="text-muted-foreground text-sm">
-            Parco di Camisano Vicentino
-          </p>
         </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="la-tua@email.it"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          <Button type="submit" className="w-full gradient-forest text-primary-foreground shadow-forest" disabled={loading}>
-            {loading ? "Accesso..." : "Accedi"}
-          </Button>
-        </form>
-
-        <div className="text-center space-y-2">
-          <button
-            onClick={handleForgotPassword}
-            className="text-sm text-primary hover:underline"
+        
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '5px' }}>
+            Password
+          </label>
+          <input 
+            type="password" 
+            placeholder="••••••••"
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              fontSize: '14px'
+            }}
+          />
+        </div>
+        
+        <button 
+          onClick={() => {
+            bootLog('Tentativo login');
+            navigate('/');
+          }}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#166534',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            cursor: 'pointer'
+          }}
+        >
+          Accedi (test)
+        </button>
+        
+        <p style={{ textAlign: 'center', marginTop: '15px', fontSize: '14px', color: '#6b7280' }}>
+          <button 
+            onClick={() => {
+              bootLog('Navigazione a register');
+              navigate('/register');
+            }}
+            style={{ color: '#166534', background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            Password dimenticata?
+            Registrati
           </button>
-          <p className="text-sm text-muted-foreground">
-            Non hai un account?{" "}
-            <Link to="/register" className="text-primary font-medium hover:underline">
-              Registrati
-            </Link>
-          </p>
-        </div>
-
-        <div className="flex items-center justify-center gap-1 text-muted-foreground">
-          <Leaf className="w-3 h-3 animate-leaf-sway" />
-          <span className="text-xs">Adotta un albero, coltiva il futuro</span>
-          <Leaf className="w-3 h-3 animate-leaf-sway" style={{ animationDelay: "1s" }} />
-        </div>
-      </motion.div>
+        </p>
+      </div>
     </div>
   );
 };
+
+bootLog('LoginPage esportato');
 
 export default LoginPage;
