@@ -1,3 +1,4 @@
+// ✅ MAIN.TSX - RENDER CON TESTO
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -10,8 +11,12 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   console.log('✅ Root element trovato');
   try {
+    // Crea il root
     const root = createRoot(rootElement);
+    
+    // Renderizza il componente
     root.render(<App />);
+    
     console.log('✅ App renderizzata con successo!');
   } catch (error) {
     console.error('❌ Errore durante il render:', error);
