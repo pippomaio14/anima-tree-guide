@@ -2,79 +2,13 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; script-src * 'unsafe-inline' 'unsafe-eval' data:; style-src * 'unsafe-inline'; connect-src * data: blob:;" />
     <title>Anima Tree Guide</title>
-    
-    <!-- ✅ LOG VISIBILE SUBITO -->
-    <style>
-      #boot-log {
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.85);
-        color: #0f0;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-family: 'Courier New', monospace;
-        font-size: 11px;
-        z-index: 99999;
-        max-height: 150px;
-        overflow-y: auto;
-        white-space: pre-wrap;
-        word-break: break-all;
-        pointer-events: none;
-        border: 1px solid #333;
-      }
-      #boot-log .error {
-        color: #ff4444;
-      }
-      #boot-log .warn {
-        color: #ffaa00;
-      }
-      #boot-log .info {
-        color: #44ff44;
-      }
-    </style>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   </head>
   <body>
-    <!-- LOG VISIBILE DAL PRIMO MOMENTO -->
-    <div id="boot-log">[INIZIO] Caricamento app...</div>
-    
     <div id="root"></div>
-    
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- ✅ LOG DOPO IL CARICAMENTO DEL MAIN -->
-    <script>
-      // Questo script viene eseguito DOPO il caricamento di main.tsx
-      const logEl = document.getElementById('boot-log');
-      if (logEl) {
-        logEl.innerHTML += '\n[HTML] Script main caricato';
-        logEl.scrollTop = logEl.scrollHeight;
-      }
-    </script>
-    
-    <!-- ✅ CATTURA ERRORI GLOBALI ANCORA PRIMA -->
-    <script>
-      window.addEventListener('error', function(e) {
-        const logEl = document.getElementById('boot-log');
-        if (logEl) {
-          logEl.innerHTML += '\n❌ [HTML ERROR] ' + e.message;
-          logEl.className = 'error';
-          logEl.scrollTop = logEl.scrollHeight;
-        }
-        console.error('HTML Error:', e);
-      });
-      
-      window.addEventListener('unhandledrejection', function(e) {
-        const logEl = document.getElementById('boot-log');
-        if (logEl) {
-          logEl.innerHTML += '\n⚠️ [HTML UNHANDLED] ' + (e.reason?.message || e.reason || '');
-          logEl.scrollTop = logEl.scrollHeight;
-        }
-      });
-    </script>
   </body>
 </html>
