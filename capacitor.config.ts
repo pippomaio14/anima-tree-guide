@@ -5,6 +5,19 @@ const config: CapacitorConfig = {
   appName: "Anima Tree Guide",
   webDir: "dist",
   
+  // ✅ AGGIUNGI QUESTE CONFIGURAZIONI
+  server: {
+    androidScheme: "https",
+    cleartext: true,
+    allowNavigation: ["*"],
+  },
+  
+  android: {
+    allowMixedContent: true,
+    webContentsDebuggingEnabled: true,
+    captureInput: true,
+  },
+  
   plugins: {
     GoogleMaps: {
       apiKey: 'AIzaSyCLUtn_ue87Sn3D_VdpDQO6RaeH4tgzLIc',
@@ -14,17 +27,6 @@ const config: CapacitorConfig = {
         location: "always",
       },
     },
-  },
-  
-  android: {
-    allowMixedContent: true,
-    webContentsDebuggingEnabled: true, // IMPORTANTE: TRUE
-  },
-  
-  // ✅ AGGIUNGI QUESTA SEZIONE PER DEBUG
-  server: {
-    androidScheme: "https",
-    cleartext: true,
   },
 };
 
