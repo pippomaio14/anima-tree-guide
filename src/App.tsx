@@ -50,6 +50,14 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            // Aggiungi questa route TEMPORANEA in App.tsx, prima di tutte le altre
+            <Route path="/test-home" element={
+              <div style={{ padding: '20px', textAlign: 'center' }}>
+                <h1>✅ Test Home</h1>
+                <p>Se vedi questo, il reindirizzamento funziona!</p>
+                <button onClick={() => navigate('/')}>Vai alla home reale</button>
+              </div>
+            } />
             <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
             <Route path="/legal/:slug" element={<LegalPage />} />
