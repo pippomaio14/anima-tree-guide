@@ -14,6 +14,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -26,12 +27,9 @@ const LoginPage = () => {
     setLoading(true);
     setError(null);
     setDebugInfo("🔍 Tentativo login...");
+    setLoginSuccess(false);
 
     try {
-      // Verifica che Supabase sia configurato
-      console.log("🔍 Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-      console.log("🔍 Supabase ANON KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY ? "✅ Presente" : "❌ Manca");
-      
       setDebugInfo(`📧 Email: ${email}`);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -39,28 +37,36 @@ const LoginPage = () => {
         password,
       });
 
-      console.log("📦 Risposta Supabase:", { data, error });
       setDebugInfo(`📦 Risposta: ${error ? 'ERRORE' : 'OK'}`);
 
       if (error) {
-        console.error("❌ Errore login:", error);
         setError(`Errore: ${error.message}`);
         setDebugInfo(`❌ ${error.message}`);
-      } else if (data?.user) {
-        console.log("✅ Login riuscito:", data.user);
-        setDebugInfo(`✅ User: ${data.user.email} (${data.user.id})`);
-        navigate('/');
+        setLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        setDebugInfo(`✅ Login riuscito! User: ${data.user.email}`);
+        setLoginSuccess(true);
+        
+        // Aspetta 3 secondi prima di navigare
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } else {
-        console.log("⚠️ Nessun dato ricevuto");
         setDebugInfo("⚠️ Nessun dato ricevuto da Supabase");
         setError("Nessuna risposta dal server");
+        setLoading(false);
       }
     } catch (err: any) {
-      console.error("❌ Eccezione:", err);
       setError(`Errore: ${err.message}`);
       setDebugInfo(`❌ ${err.message}`);
-    } finally {
       setLoading(false);
+    } finally {
+      if (!loginSuccess) {
+        setLoading(false);
+      }
     }
   };
 
@@ -98,8 +104,13 @@ const LoginPage = () => {
             
             {/* Debug info */}
             {debugInfo && (
-              <div className="text-xs text-muted-foreground bg-muted p-2 rounded break-all">
+              <div className={`text-xs p-2 rounded break-all ${loginSuccess ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'}`}>
                 {debugInfo}
+                {loginSuccess && (
+                  <div className="mt-1 font-bold text-green-700">
+                    ⏳ Reindirizzamento in 3 secondi...
+                  </div>
+                )}
               </div>
             )}
             
@@ -109,8 +120,8 @@ const LoginPage = () => {
               </div>
             )}
             
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Caricamento..." : "Accedi"}
+            <Button type="submit" className="w-full" disabled={loading || loginSuccess}>
+              {loading ? "Caricamento..." : loginSuccess ? "✅ Login effettuato!" : "Accedi"}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm text-muted-foreground">
