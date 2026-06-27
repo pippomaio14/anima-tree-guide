@@ -18,7 +18,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/test-home');
+      navigate('/');
     }
   }, [user, navigate]);
 
@@ -50,7 +50,6 @@ const LoginPage = () => {
         setDebugInfo(`✅ Login riuscito! User: ${data.user.email}`);
         setLoginSuccess(true);
         
-        // Aspetta 3 secondi prima di navigare
         setTimeout(() => {
           navigate('/');
         }, 3000);
@@ -71,7 +70,21 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* ✅ LOGO IN ALTO A DESTRA */}
+      <div className="absolute top-4 right-4">
+        <img
+          src="/logo.png"
+          alt="Logo"
+          className="w-12 h-12 object-contain"
+          onError={(e) => {
+            // Fallback se il logo non carica
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
+        />
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Benvenuto</CardTitle>
