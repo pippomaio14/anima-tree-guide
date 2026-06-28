@@ -29,7 +29,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
   const [editData, setEditData] = useState<any>({});
   const [gpsLoading, setGpsLoading] = useState<"new" | "edit" | null>(null);
 
-  // ✅ FUNZIONE PER CARICARE IL PLUGIN DINAMICAMENTE
+  // ✅ CARICA IL PLUGIN GEOLOCATION DINAMICAMENTE
   const getGeolocation = async () => {
     try {
       const module = await import('@capacitor/geolocation');
@@ -40,6 +40,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     }
   };
 
+  // ✅ OTTIENE LA POSIZIONE GPS DAL TELEFONO
   const getCurrentPosition = async (target: "new" | "edit") => {
     setGpsLoading(target);
     try {
@@ -51,6 +52,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         return;
       }
 
+      // Controlla i permessi
       const perm = await Geolocation.checkPermissions();
       if (perm.location !== "granted") {
         const req = await Geolocation.requestPermissions({ permissions: ["location"] });
@@ -61,15 +63,18 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         }
       }
       
+      // Ottieni la posizione
       const pos = await Geolocation.getCurrentPosition({ 
         enableHighAccuracy: true, 
         timeout: 15000, 
         maximumAge: 0 
       });
       
+      // Formatta le coordinate con 7 decimali
       const lat = pos.coords.latitude.toFixed(7);
       const lng = pos.coords.longitude.toFixed(7);
       
+      // Aggiorna il campo appropriato
       if (target === "new") {
         setNewTree((p) => ({ ...p, latitude: lat, longitude: lng }));
       } else {
@@ -84,21 +89,21 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     }
   };
 
-  // ✅ FUNZIONE PER PULIRE I DATI CSV
+  // ✅ PULISCE I VALORI CSV
   const cleanCSVValue = (value: string): string | null => {
     if (!value || value.trim() === "") return null;
     return value.trim();
   };
 
-  // ✅ FUNZIONE PER CONVERTIRE COORDINATE (virgola → punto)
+  // ✅ CONVERTE COORDINATE (virgola → punto)
   const parseCoordinate = (value: string): number | null => {
     if (!value || value.trim() === "") return null;
-    // Sostituisci la virgola con il punto
     const normalized = value.trim().replace(/,/g, '.');
     const num = parseFloat(normalized);
     return isNaN(num) ? null : num;
   };
 
+  // ✅ IMPORTA CSV
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -112,13 +117,11 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         return; 
       }
       
-      // Estrai header
       const headerLine = lines[0];
       const headers = headerLine.split(/[,;]/).map((h) => h.trim().toLowerCase());
       
-      console.log('📋 Headers trovati:', headers);
+      console.log('📋 Headers CSV:', headers);
       
-      // Mappa header corretti
       const rows = lines.slice(1).map((line) => {
         const vals = line.split(/[,;]/).map((v) => v.trim());
         const row: any = {};
@@ -148,12 +151,10 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
             row.adoption_period = cleanCSVValue(val);
           }
           else if (h.includes("latitudine") || h.includes("latitude") || h.includes("lat")) {
-            const coord = parseCoordinate(val);
-            row.latitude = coord;
+            row.latitude = parseCoordinate(val);
           }
           else if (h.includes("longitudine") || h.includes("longitude") || h.includes("lng")) {
-            const coord = parseCoordinate(val);
-            row.longitude = coord;
+            row.longitude = parseCoordinate(val);
           }
           else if (h.includes("specie") || h.includes("species")) {
             row.tree_species = cleanCSVValue(val);
@@ -163,14 +164,14 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         return row;
       }).filter((r) => r.tree_number && r.adopter_name);
       
-      console.log(`📊 Trovate ${rows.length} righe valide:`, rows);
+      console.log(`📊 Trovate ${rows.length} righe valide`);
       
       if (rows.length === 0) { 
         toast.error("Nessun dato valido trovato nel file"); 
         return; 
       }
       
-      const { data, error } = await supabase.from("adopted_trees").insert(rows);
+      const { error } = await supabase.from("adopted_trees").insert(rows);
       
       if (error) {
         console.error('❌ Errore import:', error);
@@ -185,6 +186,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     }
   };
 
+  // ✅ AGGIUNGE UN NUOVO ALBERO
   const addTree = async () => {
     if (!newTree.tree_number || !newTree.adopter_name) { 
       toast.error("Numero e adottante obbligatori"); 
@@ -218,12 +220,18 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     }
   };
 
+  // ✅ ELIMINA UN ALBERO
   const deleteTree = async (id: string) => {
-    await supabase.from("adopted_trees").delete().eq("id", id);
-    toast.success("Albero eliminato");
-    onReload();
+    const { error } = await supabase.from("adopted_trees").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Albero eliminato");
+      onReload();
+    }
   };
 
+  // ✅ AVVIA LA MODIFICA
   const startEdit = (tree: any) => {
     setEditingId(tree.id);
     setEditData({ 
@@ -240,6 +248,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     });
   };
 
+  // ✅ SALVA LE MODIFICHE
   const saveEdit = async () => {
     if (!editingId) return;
     
@@ -259,6 +268,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
     }
   };
 
+  // ✅ TOGGLE PUBBLICATO/NON PUBBLICATO
   const togglePublished = async (id: string, current: boolean) => {
     const { error } = await supabase.from("adopted_trees").update({ published: !current }).eq("id", id);
     if (error) {
@@ -270,6 +280,7 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
 
   return (
     <div className="space-y-4">
+      {/* ✅ SEZIONE IMPORTA CSV */}
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <h3 className="font-semibold flex items-center gap-2">
           <Upload className="w-4 h-4" /> Importa CSV
@@ -283,7 +294,213 @@ const AdminTreesTab = ({ trees, onReload }: AdminTreesTabProps) => {
         <Input type="file" accept=".csv,.txt" onChange={handleCSVImport} />
       </div>
 
-      {/* ... resto del componente invariato ... */}
+      {/* ✅ SEZIONE NUOVO ALBERO */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Nuovo Albero
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            placeholder="Numero" 
+            value={newTree.tree_number} 
+            onChange={(e) => setNewTree({ ...newTree, tree_number: e.target.value })} 
+          />
+          <Input 
+            placeholder="Adottante" 
+            value={newTree.adopter_name} 
+            onChange={(e) => setNewTree({ ...newTree, adopter_name: e.target.value })} 
+          />
+          <Input 
+            placeholder="Dedicato a" 
+            value={newTree.dedicated_to} 
+            onChange={(e) => setNewTree({ ...newTree, dedicated_to: e.target.value })} 
+          />
+          <Input 
+            placeholder="Specie" 
+            value={newTree.tree_species} 
+            onChange={(e) => setNewTree({ ...newTree, tree_species: e.target.value })} 
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            placeholder="Email adottante" 
+            type="email" 
+            value={newTree.adopter_email} 
+            onChange={(e) => setNewTree({ ...newTree, adopter_email: e.target.value })} 
+          />
+          <Input 
+            placeholder="Telefono adottante" 
+            type="tel" 
+            value={newTree.adopter_phone} 
+            onChange={(e) => setNewTree({ ...newTree, adopter_phone: e.target.value })} 
+          />
+        </div>
+        <Input 
+          placeholder="Dedica" 
+          value={newTree.dedication_message} 
+          onChange={(e) => setNewTree({ ...newTree, dedication_message: e.target.value })} 
+        />
+        <Input 
+          placeholder="Periodo adozione" 
+          value={newTree.adoption_period} 
+          onChange={(e) => setNewTree({ ...newTree, adoption_period: e.target.value })} 
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            placeholder="Latitudine" 
+            type="number" 
+            step="any" 
+            value={newTree.latitude} 
+            onChange={(e) => setNewTree({ ...newTree, latitude: e.target.value })} 
+          />
+          <Input 
+            placeholder="Longitudine" 
+            type="number" 
+            step="any" 
+            value={newTree.longitude} 
+            onChange={(e) => setNewTree({ ...newTree, longitude: e.target.value })} 
+          />
+        </div>
+        
+        {/* ✅ PULSANTE GPS */}
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={() => getCurrentPosition("new")} 
+          disabled={gpsLoading === "new"} 
+          className="w-full"
+        >
+          {gpsLoading === "new" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+          Usa la mia posizione GPS
+        </Button>
+        
+        <Button onClick={addTree} className="gradient-forest text-primary-foreground w-full">
+          Aggiungi Albero
+        </Button>
+      </div>
+
+      {/* ✅ LISTA ALBERI */}
+      <h3 className="font-semibold">Alberi ({trees.length})</h3>
+      <div className="space-y-2">
+        {trees.map((tree) => (
+          <div key={tree.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+            {editingId === tree.id ? (
+              // ✅ MODALITÀ MODIFICA
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    placeholder="Numero" 
+                    value={editData.tree_number} 
+                    onChange={(e) => setEditData({ ...editData, tree_number: e.target.value })} 
+                  />
+                  <Input 
+                    placeholder="Adottante" 
+                    value={editData.adopter_name} 
+                    onChange={(e) => setEditData({ ...editData, adopter_name: e.target.value })} 
+                  />
+                  <Input 
+                    placeholder="Dedicato a" 
+                    value={editData.dedicated_to} 
+                    onChange={(e) => setEditData({ ...editData, dedicated_to: e.target.value })} 
+                  />
+                  <Input 
+                    placeholder="Specie" 
+                    value={editData.tree_species} 
+                    onChange={(e) => setEditData({ ...editData, tree_species: e.target.value })} 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    placeholder="Email adottante" 
+                    type="email" 
+                    value={editData.adopter_email} 
+                    onChange={(e) => setEditData({ ...editData, adopter_email: e.target.value })} 
+                  />
+                  <Input 
+                    placeholder="Telefono adottante" 
+                    type="tel" 
+                    value={editData.adopter_phone} 
+                    onChange={(e) => setEditData({ ...editData, adopter_phone: e.target.value })} 
+                  />
+                </div>
+                <Input 
+                  placeholder="Dedica" 
+                  value={editData.dedication_message} 
+                  onChange={(e) => setEditData({ ...editData, dedication_message: e.target.value })} 
+                />
+                <Input 
+                  placeholder="Periodo" 
+                  value={editData.adoption_period} 
+                  onChange={(e) => setEditData({ ...editData, adoption_period: e.target.value })} 
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    placeholder="Latitudine" 
+                    type="number" 
+                    step="any" 
+                    value={editData.latitude} 
+                    onChange={(e) => setEditData({ ...editData, latitude: e.target.value })} 
+                  />
+                  <Input 
+                    placeholder="Longitudine" 
+                    type="number" 
+                    step="any" 
+                    value={editData.longitude} 
+                    onChange={(e) => setEditData({ ...editData, longitude: e.target.value })} 
+                  />
+                </div>
+                
+                {/* ✅ PULSANTE GPS IN MODIFICA */}
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => getCurrentPosition("edit")} 
+                  disabled={gpsLoading === "edit"} 
+                  className="w-full"
+                >
+                  {gpsLoading === "edit" ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <MapPin className="w-3 h-3 mr-1" />}
+                  Usa la mia posizione GPS
+                </Button>
+                
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveEdit} className="flex-1">
+                    <Check className="w-3 h-3 mr-1" />Salva
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="flex-1">
+                    <X className="w-3 h-3 mr-1" />Annulla
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // ✅ VISUALIZZAZIONE ALBERO
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <span className="font-mono text-xs text-primary">#{tree.tree_number}</span>
+                  <span className="ml-2 text-sm text-foreground">{tree.adopter_name}</span>
+                  {tree.tree_species && <span className="ml-2 text-xs text-muted-foreground">({tree.tree_species})</span>}
+                  {tree.latitude && tree.longitude && (
+                    <span className="ml-2 text-xs text-green-600">📍 GPS</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch 
+                    checked={tree.published !== false} 
+                    onCheckedChange={() => togglePublished(tree.id, tree.published !== false)} 
+                  />
+                  <button onClick={() => startEdit(tree)} className="text-muted-foreground p-1 hover:text-foreground">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => deleteTree(tree.id)} className="text-destructive p-1">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
