@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-// ✅ FUNZIONE PER CARICARE IL PLUGIN GEOLOCATION
-const loadGeolocation = async () => {
+// ✅ VERIFICA AMBIENTE NATIVO USANDO window.Capacitor
+const isNativePlatform = (): boolean => {
   try {
-    const module = await import('@capacitor/geolocation');
-    return module.Geolocation;
+    if (typeof window === 'undefined') return false;
+    if (!window.Capacitor) return false;
+    return window.Capacitor.isNativePlatform();
   } catch (e) {
-    console.warn('⚠️ Plugin geolocation non disponibile:', e);
+    return false;
+  }
+};
+
+// ✅ CARICA GEOLOCATION DA window.Capacitor.Plugins
+const getGeolocation = () => {
+  try {
+    if (typeof window === 'undefined') return null;
+    if (!window.Capacitor) return null;
+    if (!window.Capacitor.Plugins) return null;
+    return window.Capacitor.Plugins.Geolocation;
+  } catch (e) {
+    console.warn('⚠️ Geolocation non disponibile:', e);
     return null;
   }
 };
@@ -23,8 +35,7 @@ const PermissionsRequester = () => {
   useEffect(() => {
     const checkAndRequestPermissions = async () => {
       try {
-        // Controlla se siamo in ambiente nativo
-        const native = Capacitor.isNativePlatform?.() || false;
+        const native = isNativePlatform();
         setIsNative(native);
         console.log('📱 Ambiente nativo:', native);
 
@@ -34,15 +45,14 @@ const PermissionsRequester = () => {
           return;
         }
 
-        // Carica il plugin geolocation
-        const Geolocation = await loadGeolocation();
+        const Geolocation = getGeolocation();
         if (!Geolocation) {
           console.warn('⚠️ Plugin geolocation non disponibile');
           setShowDialog(true);
           return;
         }
 
-        // Controlla i permessi di geolocalizzazione
+        // Controlla i permessi
         console.log('📱 Controllo permessi geolocalizzazione...');
         const perm = await Geolocation.checkPermissions();
         console.log('📱 Stato permessi:', perm);
@@ -54,14 +64,12 @@ const PermissionsRequester = () => {
           return;
         }
 
-        // Se i permessi non sono stati concessi, mostra il dialog
         if (perm.location === 'prompt') {
           console.log('📱 Richiedo permessi...');
-          // Richiedi permessi
           const result = await Geolocation.requestPermissions({
             permissions: ['location']
           });
-          console.log('📱 Risultato richiesta permessi:', result);
+          console.log('📱 Risultato:', result);
           
           if (result.location === 'granted') {
             console.log('✅ Permessi concessi');
@@ -85,7 +93,6 @@ const PermissionsRequester = () => {
     checkAndRequestPermissions();
   }, []);
 
-  // Se i permessi sono concessi, non mostra nulla
   if (permissionsGranted || !isNative) {
     return null;
   }
@@ -120,7 +127,7 @@ const PermissionsRequester = () => {
               className="flex-1"
               onClick={async () => {
                 try {
-                  const Geolocation = await loadGeolocation();
+                  const Geolocation = getGeolocation();
                   if (Geolocation) {
                     const result = await Geolocation.requestPermissions({
                       permissions: ['location']
@@ -129,8 +136,6 @@ const PermissionsRequester = () => {
                       setPermissionsGranted(true);
                       setShowDialog(false);
                       window.location.reload();
-                    } else {
-                      setShowDialog(true);
                     }
                   }
                 } catch (err) {
