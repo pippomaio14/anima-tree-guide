@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Geolocation } from "@capacitor/geolocation";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -58,6 +57,20 @@ const isNativePlatform = (): boolean => {
   }
 };
 
+// ✅ CARICAMENTO DINAMICO DEL PLUGIN
+const loadGeolocation = async () => {
+  try {
+    if (!isNativePlatform()) {
+      return null;
+    }
+    const module = await import('@capacitor/geolocation');
+    return module.Geolocation;
+  } catch (e) {
+    console.warn('⚠️ Plugin geolocation non disponibile:', e);
+    return null;
+  }
+};
+
 // ✅ POSIZIONE DI FALLBACK (Camisano Vicentino)
 const FALLBACK_POSITION = { lat: 45.529768, lng: 11.717633 };
 
@@ -72,40 +85,43 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
 
-  // ✅ OTTIENI POSIZIONE CON GEOLOCATION IMPORTATO DIRETTAMENTE
+  // ✅ OTTIENI POSIZIONE CON CARICAMENTO DINAMICO
   const getPosition = useCallback(async (): Promise<{lat: number, lng: number} | null> => {
     try {
       if (isNativePlatform()) {
-        console.log('📱 Usando Capacitor Geolocation plugin');
+        console.log('📱 Caricamento plugin geolocation...');
+        const Geolocation = await loadGeolocation();
         
-        try {
-          // Controlla i permessi
-          const perm = await Geolocation.checkPermissions();
-          console.log('📱 Permessi geolocation:', perm);
-          
-          if (perm.location !== "granted") {
-            const req = await Geolocation.requestPermissions({ permissions: ["location"] });
-            console.log('📱 Richiesta permessi:', req);
-            if (req.location !== "granted") {
-              console.warn('⚠️ Permesso negato, uso fallback');
-              return FALLBACK_POSITION;
-            }
-          }
-
-          const pos = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: true,
-            timeout: 10000,
-          });
-          console.log('📱 Posizione ottenuta:', pos.coords.latitude, pos.coords.longitude);
-          
-          return {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
-        } catch (gpsErr) {
-          console.warn('⚠️ Errore GPS nativo:', gpsErr);
+        if (!Geolocation) {
+          console.warn('⚠️ Plugin geolocation non disponibile, uso fallback');
           return FALLBACK_POSITION;
         }
+
+        console.log('📱 Plugin caricato, richiedo posizione...');
+        
+        // Controlla i permessi
+        const perm = await Geolocation.checkPermissions();
+        console.log('📱 Permessi geolocation:', perm);
+        
+        if (perm.location !== "granted") {
+          const req = await Geolocation.requestPermissions({ permissions: ["location"] });
+          console.log('📱 Richiesta permessi:', req);
+          if (req.location !== "granted") {
+            console.warn('⚠️ Permesso negato, uso fallback');
+            return FALLBACK_POSITION;
+          }
+        }
+
+        const pos = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+        console.log('📱 Posizione ottenuta:', pos.coords.latitude, pos.coords.longitude);
+        
+        return {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
       } else {
         console.log('🌐 Usando navigator.geolocation');
         return new Promise((resolve) => {
@@ -165,10 +181,13 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let isMounted = true;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    // ✅ START WATCH CON GEOLOCATION IMPORTATO
+    // ✅ START WATCH CON CARICAMENTO DINAMICO
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
+          const Geolocation = await loadGeolocation();
+          if (!Geolocation) return;
+
           const watchIdNative = await Geolocation.watchPosition(
             { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 },
             (pos: any, err: any) => {
@@ -316,7 +335,11 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       isMounted = false;
       if (watchId.current !== null) {
         if (isNativePlatform()) {
-          Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
+          loadGeolocation().then(Geolocation => {
+            if (Geolocation) {
+              Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
+            }
+          }).catch(() => {});
         } else {
           navigator.geolocation.clearWatch(watchId.current as number);
         }
