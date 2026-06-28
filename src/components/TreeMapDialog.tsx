@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Capacitor } from "@capacitor/core";
+// ✅ RIMUOVI: import { Capacitor } from "@capacitor/core";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -20,6 +20,7 @@ declare global {
     google: any;
     __initTreeMap?: () => void;
     gm_authFailure?: () => void;
+    Capacitor?: any;
   }
 }
 
@@ -44,24 +45,28 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// ✅ CARICA IL PLUGIN GEOLOCATION DINAMICAMENTE
-const loadGeolocation = async () => {
+// ✅ SOSTITUISCI loadGeolocation() con questa versione che usa window.Capacitor
+const getGeolocation = () => {
   try {
-    const module = await import('@capacitor/geolocation');
-    return module.Geolocation;
+    if (typeof window === 'undefined') return null;
+    if (!window.Capacitor) return null;
+    if (!window.Capacitor.Plugins) return null;
+    return window.Capacitor.Plugins.Geolocation;
   } catch (e) {
-    console.warn('⚠️ Plugin geolocation non disponibile:', e);
+    console.warn('⚠️ Geolocation non disponibile:', e);
     return null;
   }
 };
 
-// ✅ VERIFICA SE SIAMO IN AMBIENTE NATIVO
+// ✅ VERIFICA SE SIAMO IN AMBIENTE NATIVO (usa window.Capacitor)
 const isNativePlatform = (): boolean => {
   try {
     if (typeof window === 'undefined') return false;
     if (!window.Capacitor) return false;
+    if (typeof window.Capacitor.isNativePlatform !== 'function') return false;
     return window.Capacitor.isNativePlatform();
   } catch (e) {
+    console.warn('Errore isNativePlatform:', e);
     return false;
   }
 };
@@ -86,13 +91,13 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let cancelled = false;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    // ✅ FUNZIONE PER OTTENERE LA POSIZIONE (NATIVA O WEB)
+    // ✅ FUNZIONE PER OTTENERE LA POSIZIONE (usa window.Capacitor)
     const getPosition = async (): Promise<{lat: number, lng: number} | null> => {
       try {
         // Se siamo su Android, usa il plugin Capacitor
         if (isNativePlatform()) {
           console.log('📱 Usando Capacitor Geolocation plugin');
-          const Geolocation = await loadGeolocation();
+          const Geolocation = getGeolocation();
           
           if (!Geolocation) {
             throw new Error('Plugin geolocalizzazione non disponibile');
@@ -145,11 +150,11 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ AVVIA IL WATCH PER LA POSIZIONE CONTINUA
+    // ✅ AVVIA IL WATCH (usa window.Capacitor)
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
-          const Geolocation = await loadGeolocation();
+          const Geolocation = getGeolocation();
           if (!Geolocation) return;
 
           const watchIdNative = await Geolocation.watchPosition(
@@ -278,16 +283,15 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
 
     init();
 
-    // ✅ CLEANUP
+    // ✅ CLEANUP (usa window.Capacitor)
     return () => {
       cancelled = true;
       if (watchId.current !== null) {
         if (isNativePlatform()) {
-          loadGeolocation().then(Geolocation => {
-            if (Geolocation) {
-              Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
-            }
-          }).catch(() => {});
+          const Geolocation = getGeolocation();
+          if (Geolocation) {
+            Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
+          }
         } else {
           navigator.geolocation.clearWatch(watchId.current as number);
         }
@@ -378,7 +382,12 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
                     userMarker.current.setPosition(pos);
                     userMarker.current.setVisible(true);
                   }
-                  toast.success("Posizione aggiornata!");
+                  // ✅ Usa toast se disponibile, altrimenti console.log
+                  if (typeof toast !== 'undefined' && toast.success) {
+                    toast.success("Posizione aggiornata!");
+                  } else {
+                    console.log('✅ Posizione aggiornata!');
+                  }
                 }
               } catch (err: any) {
                 setError(err.message);
