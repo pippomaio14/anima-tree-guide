@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.anima.treeguide">
 
+    <!-- ============================================ -->
+    <!-- PERMESSI DI RETE                            -->
+    <!-- ============================================ -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ============================================ -->
+    <!-- PERMESSI DI GEOLOCALIZZAZIONE               -->
+    <!-- ============================================ -->
+    <!-- Necessari per il GPS e la posizione approssimativa -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- ============================================ -->
+    <!-- PERMESSO NOTIFICHE (Android 13+)            -->
+    <!-- ============================================ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- ============================================ -->
+    <!-- PERMESSI OPZIONALI MA CONSIGLIATI           -->
+    <!-- ============================================ -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- ============================================ -->
+    <!-- APPLICAZIONE                                -->
+    <!-- ============================================ -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -8,19 +37,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:requestLegacyExternalStorage="true">
 
+        <!-- ============================================ -->
+        <!-- GOOGLE MAPS API KEY                         -->
+        <!-- ============================================ -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCLUtn_ue87Sn3D_VdpDQO6RaeH4tgzLIc" />
 
+        <!-- ============================================ -->
+        <!-- ACTIVITY PRINCIPALE                         -->
+        <!-- ============================================ -->
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:exported="true"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
-            android:exported="true">
+            android:theme="@style/AppTheme.NoActionBarLaunch">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,6 +65,9 @@
 
         </activity>
 
+        <!-- ============================================ -->
+        <!-- FILE PROVIDER (per condividere file)        -->
+        <!-- ============================================ -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -36,11 +75,9 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
     </application>
 
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>
