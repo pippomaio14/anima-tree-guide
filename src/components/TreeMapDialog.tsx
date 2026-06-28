@@ -44,7 +44,7 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// ✅ Geolocation da window.Capacitor
+// ✅ GEOLOCATION DA WINDOW.CAPACITOR
 const getGeolocation = () => {
   try {
     if (typeof window === 'undefined') return null;
@@ -57,7 +57,7 @@ const getGeolocation = () => {
   }
 };
 
-// ✅ Verifica ambiente nativo
+// ✅ VERIFICA AMBIENTE NATIVO
 const isNativePlatform = (): boolean => {
   try {
     if (typeof window === 'undefined') return false;
@@ -70,6 +70,9 @@ const isNativePlatform = (): boolean => {
   }
 };
 
+// ✅ POSIZIONE DI FALLBACK (Camisano Vicentino)
+const FALLBACK_POSITION = { lat: 45.529768, lng: 11.717633 };
+
 const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const mapRef = useRef<HTMLElement | null>(null);
   const mapInstance = useRef<any>(null);
@@ -79,6 +82,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [fallbackEmbed, setFallbackEmbed] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
     if (!open || !tree) return;
@@ -86,11 +90,13 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     setError(null);
     setFallbackEmbed(false);
     setGpsLoading(true);
+    setMapReady(false);
 
     let cancelled = false;
+    let isMounted = true;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    // ✅ FUNZIONE PER OTTENERE LA POSIZIONE
+    // ✅ OTTIENI POSIZIONE CON TIMEOUT E FALLBACK
     const getPosition = async (): Promise<{lat: number, lng: number} | null> => {
       try {
         if (isNativePlatform()) {
@@ -98,54 +104,80 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           const Geolocation = getGeolocation();
           
           if (!Geolocation) {
-            throw new Error('Plugin geolocalizzazione non disponibile');
+            console.warn('⚠️ Plugin geolocalizzazione non disponibile, uso fallback');
+            return FALLBACK_POSITION;
           }
 
           const perm = await Geolocation.checkPermissions();
           if (perm.location !== "granted") {
             const req = await Geolocation.requestPermissions({ permissions: ["location"] });
             if (req.location !== "granted") {
-              throw new Error('Permesso di geolocalizzazione negato');
+              console.warn('⚠️ Permesso negato, uso fallback');
+              return FALLBACK_POSITION;
             }
           }
 
-          const pos = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: true,
-            timeout: 15000,
-          });
-          
-          return {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
+          try {
+            const pos = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 10000,
+            });
+            return {
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            };
+          } catch (gpsErr) {
+            console.warn('⚠️ Errore GPS nativo, uso fallback:', gpsErr);
+            return FALLBACK_POSITION;
+          }
         } else {
           console.log('🌐 Usando navigator.geolocation');
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (!navigator.geolocation) {
-              reject(new Error('Geolocalizzazione non supportata dal browser'));
+              console.warn('⚠️ Geolocalizzazione non supportata, uso fallback');
+              resolve(FALLBACK_POSITION);
               return;
             }
+            
+            let resolved = false;
+            const timeoutId = setTimeout(() => {
+              if (!resolved) {
+                resolved = true;
+                console.warn('⚠️ Timeout geolocalizzazione, uso fallback');
+                resolve(FALLBACK_POSITION);
+              }
+            }, 8000);
+            
             navigator.geolocation.getCurrentPosition(
               (position) => {
-                resolve({
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                });
+                if (!resolved) {
+                  resolved = true;
+                  clearTimeout(timeoutId);
+                  resolve({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                  });
+                }
               },
               (err) => {
-                reject(new Error(err.message));
+                if (!resolved) {
+                  resolved = true;
+                  clearTimeout(timeoutId);
+                  console.warn('⚠️ Errore geolocalizzazione web:', err.message);
+                  resolve(FALLBACK_POSITION);
+                }
               },
-              { enableHighAccuracy: true, timeout: 15000 }
+              { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
             );
           });
         }
       } catch (err: any) {
         console.error('❌ Errore geolocalizzazione:', err);
-        throw err;
+        return FALLBACK_POSITION;
       }
     };
 
-    // ✅ START WATCH
+    // ✅ START WATCH CON TIMEOUT RIDOTTO
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
@@ -153,13 +185,13 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           if (!Geolocation) return;
 
           const watchIdNative = await Geolocation.watchPosition(
-            { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 },
             (pos: any, err: any) => {
               if (err) {
-                console.error('Errore watch:', err);
+                console.error('Errore watch nativo:', err);
                 return;
               }
-              if (pos) {
+              if (pos && isMounted) {
                 onPosition({
                   lat: pos.coords.latitude,
                   lng: pos.coords.longitude
@@ -173,15 +205,17 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           
           const watchIdWeb = navigator.geolocation.watchPosition(
             (position) => {
-              onPosition({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              });
+              if (isMounted) {
+                onPosition({
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                });
+              }
             },
             (err) => {
               console.error('Errore watch web:', err);
             },
-            { enableHighAccuracy: true, timeout: 10000 }
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
           );
           watchId.current = watchIdWeb;
         }
@@ -190,24 +224,25 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ FUNZIONE PRINCIPALE DI INIZIALIZZAZIONE
-    const initialize = async () => {
+    // ✅ INIZIALIZZA MAPPA
+    const initMap = async () => {
       try {
         await loadGoogleMaps();
-        if (cancelled || !mapRef.current) return;
+        if (cancelled || !isMounted || !mapRef.current) return;
 
         // Crea la mappa
         mapInstance.current = new window.google.maps.Map(mapRef.current, {
           center: treePos,
-          zoom: 19,
+          zoom: 18,
           mapTypeId: "satellite",
           tilt: 0,
           streetViewControl: false,
           fullscreenControl: false,
           mapTypeControl: false,
+          zoomControl: true,
         });
 
-        // Marker dell'albero
+        // Marker albero
         new window.google.maps.Marker({
           position: treePos,
           map: mapInstance.current,
@@ -215,14 +250,14 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           label: { text: "🌳", fontSize: "24px" },
         });
 
-        // Marker dell'utente (inizialmente invisibile)
+        // Marker utente (inizialmente invisibile)
         userMarker.current = new window.google.maps.Marker({
           position: treePos,
           map: mapInstance.current,
           title: "La tua posizione",
           icon: {
             path: window.google.maps.SymbolPath.CIRCLE,
-            scale: 10,
+            scale: 12,
             fillColor: "#4285F4",
             fillOpacity: 1,
             strokeColor: "#ffffff",
@@ -231,34 +266,45 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           visible: false,
         });
 
-        // Ottieni la posizione iniziale
+        setMapReady(true);
+
+        // Ottieni posizione iniziale
         try {
           setGpsLoading(true);
-          const userPos = await getPosition();
+          const position = await getPosition();
           setGpsLoading(false);
           
-          if (userPos) {
-            setUserPos(userPos);
-            userMarker.current.setPosition(userPos);
-            userMarker.current.setVisible(true);
-            
-            const bounds = new window.google.maps.LatLngBounds();
-            bounds.extend(treePos);
-            bounds.extend(userPos);
-            mapInstance.current.fitBounds(bounds, 80);
+          if (position && isMounted) {
+            setUserPos(position);
+            if (userMarker.current) {
+              userMarker.current.setPosition(position);
+              userMarker.current.setVisible(true);
+            }
+            // Centra mappa su albero + utente
+            try {
+              const bounds = new window.google.maps.LatLngBounds();
+              bounds.extend(treePos);
+              bounds.extend(position);
+              mapInstance.current.fitBounds(bounds, 80);
+            } catch (boundsErr) {
+              console.warn('Errore fitBounds:', boundsErr);
+              mapInstance.current.setCenter(treePos);
+            }
           }
         } catch (err: any) {
           setGpsLoading(false);
-          setError(`Impossibile ottenere la posizione: ${err.message}`);
+          setError(`Posizione non disponibile. Verifica il GPS.`);
           mapInstance.current.setCenter(treePos);
         }
 
-        // Avvia il watch
+        // Avvia watch
         await startWatch((pos) => {
-          setUserPos(pos);
-          if (userMarker.current) {
-            userMarker.current.setPosition(pos);
-            userMarker.current.setVisible(true);
+          if (isMounted) {
+            setUserPos(pos);
+            if (userMarker.current) {
+              userMarker.current.setPosition(pos);
+              userMarker.current.setVisible(true);
+            }
           }
         });
 
@@ -266,19 +312,22 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         
       } catch (error: any) {
         console.error("❌ Errore initMap:", error);
-        setFallbackEmbed(true);
-        if (error.message?.includes('API key')) {
-          setError('Errore di configurazione: chiave API Google Maps non valida');
+        if (isMounted) {
+          setFallbackEmbed(true);
+          if (error.message?.includes('API key')) {
+            setError('Errore: chiave API Google Maps non valida');
+          }
         }
       }
     };
 
-    // ✅ CHIAMA LA FUNZIONE DI INIZIALIZZAZIONE
-    initialize();
+    // ✅ AVVIA
+    initMap();
 
     // ✅ CLEANUP
     return () => {
       cancelled = true;
+      isMounted = false;
       if (watchId.current !== null) {
         if (isNativePlatform()) {
           const Geolocation = getGeolocation();
@@ -290,11 +339,17 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         }
         watchId.current = null;
       }
-      userMarker.current = null;
-      mapInstance.current = null;
+      if (userMarker.current) {
+        userMarker.current.setMap(null);
+        userMarker.current = null;
+      }
+      if (mapInstance.current) {
+        mapInstance.current = null;
+      }
     };
   }, [open, tree]);
 
+  // ✅ CALCOLO DISTANZA
   const distance = (() => {
     if (!userPos || !tree) return null;
     const R = 6371000;
@@ -366,7 +421,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
               setError(null);
               try {
                 const pos = await getPosition();
-                if (pos && mapInstance.current) {
+                if (pos && mapInstance.current && isNativePlatform()) {
                   setUserPos(pos);
                   mapInstance.current.panTo(pos);
                   if (userMarker.current) {
