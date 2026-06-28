@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// ✅ RIMUOVI: import { Capacitor } from "@capacitor/core";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -45,7 +44,7 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// ✅ SOSTITUISCI loadGeolocation() con questa versione che usa window.Capacitor
+// ✅ Geolocation da window.Capacitor
 const getGeolocation = () => {
   try {
     if (typeof window === 'undefined') return null;
@@ -58,7 +57,7 @@ const getGeolocation = () => {
   }
 };
 
-// ✅ VERIFICA SE SIAMO IN AMBIENTE NATIVO (usa window.Capacitor)
+// ✅ Verifica ambiente nativo
 const isNativePlatform = (): boolean => {
   try {
     if (typeof window === 'undefined') return false;
@@ -91,10 +90,9 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     let cancelled = false;
     const treePos = { lat: tree.latitude, lng: tree.longitude };
 
-    // ✅ FUNZIONE PER OTTENERE LA POSIZIONE (usa window.Capacitor)
+    // ✅ FUNZIONE PER OTTENERE LA POSIZIONE
     const getPosition = async (): Promise<{lat: number, lng: number} | null> => {
       try {
-        // Se siamo su Android, usa il plugin Capacitor
         if (isNativePlatform()) {
           console.log('📱 Usando Capacitor Geolocation plugin');
           const Geolocation = getGeolocation();
@@ -103,7 +101,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             throw new Error('Plugin geolocalizzazione non disponibile');
           }
 
-          // Controlla i permessi
           const perm = await Geolocation.checkPermissions();
           if (perm.location !== "granted") {
             const req = await Geolocation.requestPermissions({ permissions: ["location"] });
@@ -112,7 +109,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             }
           }
 
-          // Ottieni la posizione
           const pos = await Geolocation.getCurrentPosition({
             enableHighAccuracy: true,
             timeout: 15000,
@@ -123,7 +119,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             lng: pos.coords.longitude
           };
         } else {
-          // Su web, usa navigator.geolocation
           console.log('🌐 Usando navigator.geolocation');
           return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
@@ -150,7 +145,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ AVVIA IL WATCH (usa window.Capacitor)
+    // ✅ START WATCH
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
@@ -174,7 +169,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           );
           watchId.current = watchIdNative;
         } else {
-          // Web: usa navigator.geolocation
           if (!navigator.geolocation) return;
           
           const watchIdWeb = navigator.geolocation.watchPosition(
@@ -196,8 +190,8 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    // ✅ INIZIALIZZA LA MAPPA
-    const initMap = async () => {
+    // ✅ FUNZIONE PRINCIPALE DI INIZIALIZZAZIONE
+    const initialize = async () => {
       try {
         await loadGoogleMaps();
         if (cancelled || !mapRef.current) return;
@@ -237,7 +231,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
           visible: false,
         });
 
-        // ✅ OTTIENI LA POSIZIONE INIZIALE
+        // Ottieni la posizione iniziale
         try {
           setGpsLoading(true);
           const userPos = await getPosition();
@@ -248,7 +242,6 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             userMarker.current.setPosition(userPos);
             userMarker.current.setVisible(true);
             
-            // Centra la mappa
             const bounds = new window.google.maps.LatLngBounds();
             bounds.extend(treePos);
             bounds.extend(userPos);
@@ -257,11 +250,10 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
         } catch (err: any) {
           setGpsLoading(false);
           setError(`Impossibile ottenere la posizione: ${err.message}`);
-          // Mostra solo l'albero
           mapInstance.current.setCenter(treePos);
         }
 
-        // ✅ AVVIA IL WATCH PER GLI AGGIORNAMENTI
+        // Avvia il watch
         await startWatch((pos) => {
           setUserPos(pos);
           if (userMarker.current) {
@@ -281,9 +273,10 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       }
     };
 
-    init();
+    // ✅ CHIAMA LA FUNZIONE DI INIZIALIZZAZIONE
+    initialize();
 
-    // ✅ CLEANUP (usa window.Capacitor)
+    // ✅ CLEANUP
     return () => {
       cancelled = true;
       if (watchId.current !== null) {
@@ -322,9 +315,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             <Navigation className="w-4 h-4 text-primary" />
             Albero #{tree?.tree_number}
             {gpsLoading && (
-              <span className="ml-auto text-sm text-muted-foreground">
-                ⏳ GPS...
-              </span>
+              <span className="ml-auto text-sm text-muted-foreground">⏳ GPS...</span>
             )}
             {distance !== null && !gpsLoading && (
               <span className="ml-auto text-sm font-normal text-muted-foreground">
@@ -382,12 +373,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
                     userMarker.current.setPosition(pos);
                     userMarker.current.setVisible(true);
                   }
-                  // ✅ Usa toast se disponibile, altrimenti console.log
-                  if (typeof toast !== 'undefined' && toast.success) {
-                    toast.success("Posizione aggiornata!");
-                  } else {
-                    console.log('✅ Posizione aggiornata!');
-                  }
+                  console.log('✅ Posizione aggiornata!');
                 }
               } catch (err: any) {
                 setError(err.message);
