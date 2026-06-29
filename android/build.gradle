@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+// ✅ 1. buildscript {} - DEVE essere il PRIMO blocco
 buildscript {
-    
     repositories {
         google()
         mavenCentral()
@@ -15,8 +15,16 @@ buildscript {
     }
 }
 
+// ✅ 2. plugins {} - DEVE venire SUBITO DOPO buildscript {}
+plugins {
+    // Add the dependency for the Google services Gradle plugin
+    id 'com.google.gms.google-services' version '4.5.0' apply false
+}
+
+// ✅ 3. apply from - Carica le variabili
 apply from: "variables.gradle"
 
+// ✅ 4. allprojects - Configurazioni comuni per tutti i moduli
 allprojects {
     repositories {
         google()
@@ -24,14 +32,7 @@ allprojects {
     }
 }
 
+// ✅ 5. task clean - Pulizia del progetto
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-plugins {
-  // ...
-
-  // Add the dependency for the Google services Gradle plugin
-  id 'com.google.gms.google-services' version '4.5.0' apply false
-
 }
