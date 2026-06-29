@@ -8,6 +8,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
+        // ✅ Firebase: usa classpath, non plugins {}
         classpath 'com.google.gms:google-services:4.4.4'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -15,11 +16,10 @@ buildscript {
     }
 }
 
-// ✅ 2. plugins {} - DEVE venire SUBITO DOPO buildscript {}
-plugins {
-    // Add the dependency for the Google services Gradle plugin
-    id 'com.google.gms.google-services' version '4.5.0' apply false
-}
+// ✅ 2. RIMUOVI il blocco plugins {} - NON SERVE PIÙ!
+// plugins {
+//     id 'com.google.gms.google-services' version '4.5.0' apply false
+// }
 
 // ✅ 3. apply from - Carica le variabili
 apply from: "variables.gradle"
