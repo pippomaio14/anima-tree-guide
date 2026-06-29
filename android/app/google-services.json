@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "86049784239",
+    "project_id": "anima-tree-guide",
+    "storage_bucket": "anima-tree-guide.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:86049784239:android:4e02061f1457623bbb2f5a",
+        "android_client_info": {
+          "package_name": "com.anima.treeguide"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1FG8ErVm-OJQweMyY0OEyZXmocrkK9Qk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
