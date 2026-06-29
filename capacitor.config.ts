@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
@@ -37,14 +36,6 @@ const config: CapacitorConfig = {
       presentationOptions: ["badge", "sound", "alert"],
     },
   },
-=======
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: 'com.lovable.app',
-  appName: 'AnimaMundi',
-  webDir: 'dist'
->>>>>>> Stashed changes
 };
 
 export default config;
