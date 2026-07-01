@@ -193,9 +193,9 @@ const App = () => (
       <Sonner />
       <SplashScreen />
       <PermissionsRequester />
-      <PushNotificationHandler /> {/* ← AGGIUNTO */}
       <BrowserRouter>
         <AuthProvider>
+          <PushNotificationHandler />
           <Routes>
             <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
@@ -217,6 +217,7 @@ const App = () => (
           </Routes>
         </AuthProvider>
       </BrowserRouter>
+
     </TooltipProvider>
   </QueryClientProvider>
 );
