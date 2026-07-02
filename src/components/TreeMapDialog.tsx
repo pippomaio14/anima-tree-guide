@@ -73,13 +73,8 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const getPosition = useCallback(async (): Promise<{lat: number, lng: number} | null> => {
     try {
       if (isNativePlatform()) {
-        console.log('📱 Caricamento plugin geolocation...');
-        const Geolocation = await loadGeolocation();
-        
-        if (!Geolocation) {
-          console.warn('⚠️ Plugin geolocation non disponibile, uso fallback');
-          return FALLBACK_POSITION;
-        }
+        console.log('📱 Uso plugin Capacitor Geolocation...');
+
 
         console.log('📱 Plugin caricato, richiedo posizione...');
         
