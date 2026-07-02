@@ -313,11 +313,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       isMounted = false;
       if (watchId.current !== null) {
         if (isNativePlatform()) {
-          loadGeolocation().then(Geolocation => {
-            if (Geolocation) {
-              Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
-            }
-          }).catch(() => {});
+          Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
         } else {
           navigator.geolocation.clearWatch(watchId.current as number);
         }
