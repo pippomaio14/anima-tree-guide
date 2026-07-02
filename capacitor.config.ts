@@ -5,11 +5,12 @@ const config: CapacitorConfig = {
   appName: "Anima Tree Guide",
   webDir: "dist",
   
-  // ✅ CONFIGURAZIONE SERVER (dal tuo file - manteniamo)
+  // ✅ CONFIGURAZIONE SERVER
+  // NON usare allowNavigation: ["*"] — intercetterebbe anche i link a Google Maps
+  // e li aprirebbe dentro la WebView invece che nell'app Maps esterna.
   server: {
     androidScheme: "https",
     cleartext: true,
-    allowNavigation: ["*"],
   },
   
   // ✅ CONFIGURAZIONE ANDROID (dal tuo file - manteniamo)

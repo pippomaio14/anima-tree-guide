@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Navigation, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 
 interface TreeMapDialogProps {
   open: boolean;
@@ -44,30 +46,12 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// ✅ VERIFICA AMBIENTE NATIVO
+// ✅ VERIFICA AMBIENTE NATIVO (Capacitor)
 const isNativePlatform = (): boolean => {
   try {
-    if (typeof window === 'undefined') return false;
-    if (!window.Capacitor) return false;
-    if (typeof window.Capacitor.isNativePlatform !== 'function') return false;
-    return window.Capacitor.isNativePlatform();
-  } catch (e) {
-    console.warn('Errore isNativePlatform:', e);
+    return Capacitor.isNativePlatform();
+  } catch {
     return false;
-  }
-};
-
-// ✅ CARICAMENTO DINAMICO DEL PLUGIN
-const loadGeolocation = async () => {
-  try {
-    if (!isNativePlatform()) {
-      return null;
-    }
-    const module = await import('@capacitor/geolocation');
-    return module.Geolocation;
-  } catch (e) {
-    console.warn('⚠️ Plugin geolocation non disponibile:', e);
-    return null;
   }
 };
 
@@ -89,13 +73,8 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
   const getPosition = useCallback(async (): Promise<{lat: number, lng: number} | null> => {
     try {
       if (isNativePlatform()) {
-        console.log('📱 Caricamento plugin geolocation...');
-        const Geolocation = await loadGeolocation();
-        
-        if (!Geolocation) {
-          console.warn('⚠️ Plugin geolocation non disponibile, uso fallback');
-          return FALLBACK_POSITION;
-        }
+        console.log('📱 Uso plugin Capacitor Geolocation...');
+
 
         console.log('📱 Plugin caricato, richiedo posizione...');
         
@@ -185,8 +164,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
-          const Geolocation = await loadGeolocation();
-          if (!Geolocation) return;
+
 
           const watchIdNative = await Geolocation.watchPosition(
             { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 },
@@ -335,11 +313,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
       isMounted = false;
       if (watchId.current !== null) {
         if (isNativePlatform()) {
-          loadGeolocation().then(Geolocation => {
-            if (Geolocation) {
-              Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
-            }
-          }).catch(() => {});
+          Geolocation.clearWatch({ id: watchId.current as string }).catch(() => {});
         } else {
           navigator.geolocation.clearWatch(watchId.current as number);
         }
@@ -409,13 +383,24 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             variant="outline"
             className="flex-1"
             onClick={() => {
-              if (tree) {
-                const url = `https://www.google.com/maps/dir/?api=1&destination=${tree.latitude},${tree.longitude}`;
-                if (isNativePlatform()) {
-                  window.open(url, '_system');
-                } else {
-                  window.open(url, '_blank');
-                }
+              if (!tree) return;
+              const { latitude, longitude } = tree;
+              const platform = Capacitor.getPlatform();
+              // Android: schema geo: → apre direttamente Google Maps / navigatore
+              // iOS: comgooglemaps:// fallback su universal link Maps
+              // Web: nuova scheda
+              if (platform === 'android') {
+                // google.navigation avvia direttamente la navigazione turn-by-turn
+                window.location.href = `google.navigation:q=${latitude},${longitude}&mode=w`;
+              } else if (platform === 'ios') {
+                const gmaps = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=walking`;
+                const applemaps = `maps://?daddr=${latitude},${longitude}&dirflg=w`;
+                // Prova prima Google Maps, se non installato Safari cade su Apple Maps
+                window.location.href = gmaps;
+                setTimeout(() => { window.location.href = applemaps; }, 600);
+              } else {
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`;
+                window.open(url, '_blank', 'noopener,noreferrer');
               }
             }}
           >
