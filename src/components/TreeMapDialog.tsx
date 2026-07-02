@@ -164,8 +164,7 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
     const startWatch = async (onPosition: (pos: { lat: number; lng: number }) => void) => {
       try {
         if (isNativePlatform()) {
-          const Geolocation = await loadGeolocation();
-          if (!Geolocation) return;
+
 
           const watchIdNative = await Geolocation.watchPosition(
             { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 },
