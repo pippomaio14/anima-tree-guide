@@ -46,30 +46,12 @@ const loadGoogleMaps = (): Promise<void> => {
   return mapsLoaderPromise;
 };
 
-// ✅ VERIFICA AMBIENTE NATIVO
+// ✅ VERIFICA AMBIENTE NATIVO (Capacitor)
 const isNativePlatform = (): boolean => {
   try {
-    if (typeof window === 'undefined') return false;
-    if (!window.Capacitor) return false;
-    if (typeof window.Capacitor.isNativePlatform !== 'function') return false;
-    return window.Capacitor.isNativePlatform();
-  } catch (e) {
-    console.warn('Errore isNativePlatform:', e);
+    return Capacitor.isNativePlatform();
+  } catch {
     return false;
-  }
-};
-
-// ✅ CARICAMENTO DINAMICO DEL PLUGIN
-const loadGeolocation = async () => {
-  try {
-    if (!isNativePlatform()) {
-      return null;
-    }
-    const module = await import('@capacitor/geolocation');
-    return module.Geolocation;
-  } catch (e) {
-    console.warn('⚠️ Plugin geolocation non disponibile:', e);
-    return null;
   }
 };
 
