@@ -383,13 +383,24 @@ const TreeMapDialog = ({ open, onClose, tree }: TreeMapDialogProps) => {
             variant="outline"
             className="flex-1"
             onClick={() => {
-              if (tree) {
-                const url = `https://www.google.com/maps/dir/?api=1&destination=${tree.latitude},${tree.longitude}`;
-                if (isNativePlatform()) {
-                  window.open(url, '_system');
-                } else {
-                  window.open(url, '_blank');
-                }
+              if (!tree) return;
+              const { latitude, longitude } = tree;
+              const platform = Capacitor.getPlatform();
+              // Android: schema geo: → apre direttamente Google Maps / navigatore
+              // iOS: comgooglemaps:// fallback su universal link Maps
+              // Web: nuova scheda
+              if (platform === 'android') {
+                // google.navigation avvia direttamente la navigazione turn-by-turn
+                window.location.href = `google.navigation:q=${latitude},${longitude}&mode=w`;
+              } else if (platform === 'ios') {
+                const gmaps = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=walking`;
+                const applemaps = `maps://?daddr=${latitude},${longitude}&dirflg=w`;
+                // Prova prima Google Maps, se non installato Safari cade su Apple Maps
+                window.location.href = gmaps;
+                setTimeout(() => { window.location.href = applemaps; }, 600);
+              } else {
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=walking`;
+                window.open(url, '_blank', 'noopener,noreferrer');
               }
             }}
           >
